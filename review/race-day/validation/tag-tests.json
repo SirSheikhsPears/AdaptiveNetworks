@@ -1,0 +1,111 @@
+{
+  "method": "limited IL interpreter, NOT CLR/Unity/Harmony/in-game execution",
+  "game_sha256": "df557994a03c93d8bb4a14f80b1fbcc0fb29d547658442445d078d069bcdd9fe",
+  "original_sha256": "498015d38e7914aac42c0373a0a0a82fee6bc70463d00b4ff6ee237604bdf0be",
+  "patched_sha256": "d31ab4c50939301f1cbdee027ba5b9d21b62c7940a1d6e72f45ccbe3a7571689",
+  "predicate_checks_passed": 1568,
+  "original_mismatches": {
+    "Check": 493,
+    "CheckOrNone": 775
+  },
+  "asset_predicate_cases": [
+    {
+      "file": "r2-rwyus-w-grco-2x2-portalnorth.crp",
+      "mesh": "r2-abut-northportal-2",
+      "node_index": 2,
+      "case": "same Elevated groups",
+      "node_groups": [
+        "Mainline-2"
+      ],
+      "target_groups": [
+        "DoubleBridge"
+      ],
+      "expected": false,
+      "patched": false,
+      "original": true
+    },
+    {
+      "file": "r2-rwyus-w-grco-2x2-portalnorth.crp",
+      "mesh": "r2-abut-northportal-2",
+      "node_index": 2,
+      "case": "one accepted Mainline group",
+      "node_groups": [
+        "Mainline-2"
+      ],
+      "target_groups": [
+        "Mainline-2"
+      ],
+      "expected": true,
+      "patched": true,
+      "original": true
+    },
+    {
+      "file": "r2-rwyus-w-grco-2x2-portalnorth.crp",
+      "mesh": "r2-abut-northportal-4",
+      "node_index": 9,
+      "case": "same Elevated groups",
+      "node_groups": [
+        "Mainline-4"
+      ],
+      "target_groups": [
+        "DoubleBridge"
+      ],
+      "expected": false,
+      "patched": false,
+      "original": true
+    },
+    {
+      "file": "r2-rwyus-w-grco-2x2-portalnorth.crp",
+      "mesh": "r2-abut-northportal-4",
+      "node_index": 9,
+      "case": "one accepted Mainline group",
+      "node_groups": [
+        "Mainline-4"
+      ],
+      "target_groups": [
+        "Mainline-4"
+      ],
+      "expected": true,
+      "patched": true,
+      "original": true
+    },
+    {
+      "file": "r2-rwyus-w-grco-4x2-portalnorth.crp",
+      "mesh": "r2-abut-northportal-4",
+      "node_index": 0,
+      "case": "same Elevated groups",
+      "node_groups": [
+        "Mainline-2",
+        "Mainline-4",
+        "Mainline-1"
+      ],
+      "target_groups": [
+        "QuadBridge"
+      ],
+      "expected": false,
+      "patched": false,
+      "original": true
+    },
+    {
+      "file": "r2-rwyus-w-grco-4x2-portalnorth.crp",
+      "mesh": "r2-abut-northportal-4",
+      "node_index": 0,
+      "case": "one accepted Mainline group",
+      "node_groups": [
+        "Mainline-2",
+        "Mainline-4",
+        "Mainline-1"
+      ],
+      "target_groups": [
+        "Mainline-2"
+      ],
+      "expected": true,
+      "patched": true,
+      "original": true
+    }
+  ],
+  "external_environment": [
+    "DynamicFlags.empty initialized to empty ulong array",
+    "Mathf.Max(int,int)"
+  ]
+}

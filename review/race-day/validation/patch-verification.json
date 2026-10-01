@@ -1,0 +1,20 @@
+[
+  {
+    "patch": "DLA_AUTORA/01-AN-core.patch",
+    "base": "fafd40aadd674302e2c2fceda9cddeca6a399cfc",
+    "apply_check": true,
+    "matches_test2_worktree": true
+  },
+  {
+    "patch": "DLA_AUTORA/02-KianCommons-from-69a5f8.patch",
+    "base": "69a5f8abede9fcb23440b98418fccfaf006877ca",
+    "apply_check": true,
+    "matches_test2_worktree": true
+  },
+  {
+    "patch": "DLA_AUTORA/03-KianCommons-local-on-b922567.patch",
+    "base": "b922567013664ac6378ad8dabc0082c50b86f666",
+    "apply_check": true,
+    "matches_test2_worktree": true
+  }
+]

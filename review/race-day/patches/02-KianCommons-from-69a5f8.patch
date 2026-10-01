@@ -1,0 +1,85 @@
+diff --git a/KianCommons/Util/DynamicFlags2.cs b/KianCommons/Util/DynamicFlags2.cs
+index c9a4bd9..705180f 100644
+--- a/KianCommons/Util/DynamicFlags2.cs
++++ b/KianCommons/Util/DynamicFlags2.cs
+@@ -44,8 +44,8 @@ namespace KianCommons {
+             return false;
+         }
+ 
+-        public static bool IsAnyFlagSet(DynamicFlags flags, DynamicFlags flags2) {
+-            return !DynamicFlags.Check(flags, new DynamicFlags(EMPTY_FLAGS), flags2);
++        public static bool IsAnyFlagSet(DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> flags2) {
++            return !DynamicFlags<NetInfo>.CheckAll(flags, DynamicFlags<NetInfo>.empty, flags2);
+         }
+ 
+ 
+diff --git a/KianCommons/Util/DynamicFlagsUtil.cs b/KianCommons/Util/DynamicFlagsUtil.cs
+index 95a12a6..afe272d 100644
+--- a/KianCommons/Util/DynamicFlagsUtil.cs
++++ b/KianCommons/Util/DynamicFlagsUtil.cs
+@@ -2,21 +2,21 @@ namespace KianCommons;
+ public static class DynamicFlagsUtil {
+     public readonly static ulong[] EMPTY_FLAGS = new ulong[0];
+     public readonly static string[] EMPTY_TAGS = new string[0];
+-    public readonly static DynamicFlags NONE = new DynamicFlags(EMPTY_FLAGS);
++    public readonly static DynamicFlags<NetInfo> NONE = DynamicFlags<NetInfo>.empty;
+ 
+-    public static bool CheckFlags(this DynamicFlags flags, DynamicFlags required, DynamicFlags forbidden) =>
+-        DynamicFlags.Check(flags, required: required, forbidden: forbidden);
++    public static bool CheckFlags(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> required, DynamicFlags<NetInfo> forbidden) =>
++        DynamicFlags<NetInfo>.CheckAll(flags, required, forbidden);
+ 
+-    public static bool IsAnyFlagSet(this DynamicFlags flags, DynamicFlags flags2) =>
+-        !DynamicFlags.Check(flags, required: new DynamicFlags(EMPTY_FLAGS), forbidden: flags2);
++    public static bool IsAnyFlagSet(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> flags2) =>
++        !DynamicFlags<NetInfo>.CheckAll(flags, DynamicFlags<NetInfo>.empty, flags2);
+ 
+-    public static bool IsAnyFlagSetOrEmpty(this DynamicFlags flags, DynamicFlags flags2) =>
+-    (flags.IsEmpty && flags2.IsEmpty) || flags.IsAnyFlagSet(flags2);
++    public static bool IsAnyFlagSetOrEmpty(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> flags2) =>
++        (flags.IsEmpty && flags2.IsEmpty) || flags.IsAnyFlagSet(flags2);
+ 
+ 
+     public static bool CheckFlags(this DynamicFlags2 flags, DynamicFlags2 required, DynamicFlags2 forbidden) =>
+         DynamicFlags2.CheckFlags(flags, required: required, forbidden: forbidden);
+ 
+     public static bool IsAnyFlagSet(this DynamicFlags2 flags, DynamicFlags2 flags2) =>
+-        !DynamicFlags2.IsAnyFlagSet(flags, flags2);
++        DynamicFlags2.IsAnyFlagSet(flags, flags2);
+ }
+diff --git a/KianCommons/Util/NetUtil.cs b/KianCommons/Util/NetUtil.cs
+index 5c00308..8392d45 100644
+--- a/KianCommons/Util/NetUtil.cs
++++ b/KianCommons/Util/NetUtil.cs
+@@ -16,15 +16,23 @@ namespace KianCommons {
+     }
+ 
+     public static class NetUtil {
+-        public static Dictionary<string, int> kTags = ReflectionHelpers.GetFieldValue<NetInfo>("kTags") as Dictionary<string, int>;
++        public static Dictionary<string, int> kTags;
++
++        // Preserve AN-EF's explicit initialization and useful missing-field error.
++        // Race Day moved the network tag registry from NetInfo to DynamicFlags<NetInfo>.
++        static NetUtil() {
++            kTags = ReflectionHelpers.GetFieldValue<DynamicFlags<NetInfo>>("kTags") as Dictionary<string, int>;
++            if (kTags == null)
++                throw new NetServiceException("DynamicFlags<NetInfo>.kTags not found");
++        }
+ 
+         /// <summary>
+         /// WARNING: low performance!
+         /// </summary>
+-        public static string[] GetTags(DynamicFlags flags) {
++        public static string[] GetTags(DynamicFlags<NetInfo> flags) {
+             List<string> tags = new();
+             foreach (string tag in kTags.Keys) {
+-                var flag = NetInfo.GetFlags(new[] { tag });
++                var flag = DynamicFlags<NetInfo>.GetFlags(new[] { tag });
+                 if (!(flag & flags).IsEmpty) {
+                     tags.Add(tag);
+                 }
+@@ -892,4 +900,3 @@ namespace KianCommons {
+         IEnumerator IEnumerable.GetEnumerator() => this;
+     }
+ }
+-

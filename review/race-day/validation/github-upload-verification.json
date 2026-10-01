@@ -1,0 +1,43 @@
+{
+  "repository": "https://github.com/SirSheikhsPears/AdaptiveNetworks",
+  "branch": "fix-raceday-flags",
+  "base_commit": "fafd40aadd674302e2c2fceda9cddeca6a399cfc",
+  "reviewed_commit": "22c84acec04c6b1c52fb8f848432c9e44249202a",
+  "changed_paths": [
+    "AdaptiveRoads/Data/NetworkExtensions/NetLaneExt.cs",
+    "AdaptiveRoads/Manager/NetInfoExtension/Extensions.cs",
+    "AdaptiveRoads/Manager/NetInfoExtension/Flags.cs",
+    "AdaptiveRoads/Manager/NetInfoExtension/Segment.cs",
+    "AdaptiveRoads/Patches/Segment/CheckSegmentFlagsCommons.cs"
+  ],
+  "expected_paths_only": true,
+  "all_five_files_match": true,
+  "files": [
+    {
+      "path": "AdaptiveRoads/Data/NetworkExtensions/NetLaneExt.cs",
+      "matches_prepared_file": true,
+      "sha256": "e031473b05d963cc4894f71674af0279331d8804bc9502394a86c2a18d6b771d"
+    },
+    {
+      "path": "AdaptiveRoads/Manager/NetInfoExtension/Extensions.cs",
+      "matches_prepared_file": true,
+      "sha256": "3246368a9da318c789b6b2149e3318ca0b36d5cdb83ee112064d93bfd10f098e"
+    },
+    {
+      "path": "AdaptiveRoads/Manager/NetInfoExtension/Flags.cs",
+      "matches_prepared_file": true,
+      "sha256": "a0efbe94186e31c6ed2af1b09bf831e5bb64cfa2c7de2f92052437835cb1aa7a"
+    },
+    {
+      "path": "AdaptiveRoads/Manager/NetInfoExtension/Segment.cs",
+      "matches_prepared_file": true,
+      "sha256": "0dec833208c4822ed90163d52646d6caa89fbeb3f1d7ec38b3c0ec20ea0896e7"
+    },
+    {
+      "path": "AdaptiveRoads/Patches/Segment/CheckSegmentFlagsCommons.cs",
+      "matches_prepared_file": true,
+      "sha256": "c207990935a7db1f80034c9eaad423fa7e9b68c7407bb4eb4bc2f648ddfbecba"
+    }
+  ],
+  "kian_submodule_entry": "160000 commit 69a5f8abede9fcb23440b98418fccfaf006877ca\tAdaptiveRoads/KianCommons"
+}

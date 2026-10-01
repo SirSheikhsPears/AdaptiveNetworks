@@ -1,0 +1,135 @@
+diff --git a/AdaptiveRoads/Data/NetworkExtensions/NetLaneExt.cs b/AdaptiveRoads/Data/NetworkExtensions/NetLaneExt.cs
+index 6e76e70..db7eaef 100644
+--- a/AdaptiveRoads/Data/NetworkExtensions/NetLaneExt.cs
++++ b/AdaptiveRoads/Data/NetworkExtensions/NetLaneExt.cs
+@@ -125,12 +125,10 @@ namespace AdaptiveRoads.Manager{
+ 
+                 bool parkingAllowed = LaneData.LaneInfo.m_laneType == NetInfo.LaneType.Parking;
+                 if(parkingAllowed && ParkingMan != null) {
+-                    // Parking lanes typically have m_finalDirection=None which maps to index 0 (Forward)
+-                    // regardless of which side the lane is actually on. Instead, derive the TMPE direction
+-                    // from the physical lane position: for RHT, right-side = Forward, left-side = Backward.
+-                    bool rightSide = LaneData.RightSide;
+-                    var parkingDir = rightSide ? NetInfo.Direction.Forward : NetInfo.Direction.Backward;
+-                    parkingAllowed &= ParkingMan.IsParkingAllowed(LaneData.SegmentID, parkingDir);
++                    // TM:PE indexes restrictions by the prefab lane's final direction.
++                    // LaneData.RightSide includes segment Invert and is a different coordinate system.
++                    parkingAllowed &= ParkingMan.IsParkingAllowed(
++                        LaneData.SegmentID, LaneData.LaneInfo.m_finalDirection);
+                 }
+                 m_flags = m_flags.SetFlags(Flags.ParkingAllowed, parkingAllowed);
+ 
+diff --git a/AdaptiveRoads/Manager/NetInfoExtension/Extensions.cs b/AdaptiveRoads/Manager/NetInfoExtension/Extensions.cs
+index 8c70e3b..bcf1018 100644
+--- a/AdaptiveRoads/Manager/NetInfoExtension/Extensions.cs
++++ b/AdaptiveRoads/Manager/NetInfoExtension/Extensions.cs
+@@ -81,6 +81,16 @@ namespace AdaptiveRoads.Manager {
+                 return flags.CheckFlags(segmentInfo.m_backwardRequired, segmentInfo.m_backwardForbidden);
+         }
+ 
++        // Check one specific orientation, including the flag word added by Race Day.
++        // The game's ref-bool overload chooses a direction before AN flags are checked.
++        public static bool CheckFlags(this NetInfo.Segment segmentInfo, NetSegment.Flags flags,
++                NetSegment.Flags2 flags2, bool turnAround) {
++            var required2 = turnAround ? segmentInfo.m_backwardRequired2 : segmentInfo.m_forwardRequired2;
++            var forbidden2 = turnAround ? segmentInfo.m_backwardForbidden2 : segmentInfo.m_forwardForbidden2;
++            return segmentInfo.CheckFlags(flags, turnAround) &&
++                (flags2 & (required2 | forbidden2)) == required2;
++        }
++
+         /// <param name="layerMask">for calculate/populate group data <c>layerMask=1<<layer</c></param>
+         /// <returns>if there is any matching layer</returns>
+         public static bool CheckNetLayers(this NetInfo info, int layerMask) => info && (layerMask & info.m_netLayers) != 0;
+diff --git a/AdaptiveRoads/Manager/NetInfoExtension/Flags.cs b/AdaptiveRoads/Manager/NetInfoExtension/Flags.cs
+index e7c4e2a..615a814 100644
+--- a/AdaptiveRoads/Manager/NetInfoExtension/Flags.cs
++++ b/AdaptiveRoads/Manager/NetInfoExtension/Flags.cs
+@@ -231,14 +231,16 @@ namespace AdaptiveRoads.Manager {
+                     Flags = DynamicFlags<NetInfo>.empty; // simplify.
+             }
+ 
+-            public virtual bool Check(DynamicFlags<NetInfo> flags) => !Flags.IsEmpty || DynamicFlags<NetInfo>.CheckAll(Flags, DynamicFlags<NetInfo>.empty, flags);
++            public virtual bool Check(DynamicFlags<NetInfo> flags) => IsAnyFlagSet(flags);
+ 
+-            // Extension method to check if any flagset is flagged
++            // With no required flags, rejecting the other set as forbidden detects overlap.
+             private bool IsAnyFlagSet(DynamicFlags<NetInfo> flags) => !DynamicFlags<NetInfo>.CheckAll(Flags, DynamicFlags<NetInfo>.empty, flags);
+ 
+             public bool IsNone() => Flags.IsEmpty;
+ 
+-            public virtual bool CheckOrNone(DynamicFlags<NetInfo> flags) => Flags.IsEmpty || DynamicFlags<NetInfo>.CheckAll(Flags, DynamicFlags<NetInfo>.empty, flags);
++            // Preserve the pre-Race Day rule: a shared flag, or both sets empty.
++            public virtual bool CheckOrNone(DynamicFlags<NetInfo> flags) =>
++                (Flags.IsEmpty && flags.IsEmpty) || IsAnyFlagSet(flags);
+ 
+ 
+ 
+diff --git a/AdaptiveRoads/Manager/NetInfoExtension/Segment.cs b/AdaptiveRoads/Manager/NetInfoExtension/Segment.cs
+index 5989445..8c4212f 100644
+--- a/AdaptiveRoads/Manager/NetInfoExtension/Segment.cs
++++ b/AdaptiveRoads/Manager/NetInfoExtension/Segment.cs
+@@ -99,6 +99,7 @@ namespace AdaptiveRoads.Manager {
+                 } else {
+                     Helpers.Swap(ref tailFlags, ref headFlags);
+                     Helpers.Swap(ref tailNodeFlags, ref headNodeFlags);
++                    Helpers.Swap(ref tailNodeExtFlags, ref headNodeExtFlags);
+                     ret = Backward.CheckFlags(flags) && CheckEndFlags(
+                         tailFlags: tailFlags,
+                         headFlags: headFlags,
+diff --git a/AdaptiveRoads/Patches/Segment/CheckSegmentFlagsCommons.cs b/AdaptiveRoads/Patches/Segment/CheckSegmentFlagsCommons.cs
+index 904f23f..2ef0bdf 100644
+--- a/AdaptiveRoads/Patches/Segment/CheckSegmentFlagsCommons.cs
++++ b/AdaptiveRoads/Patches/Segment/CheckSegmentFlagsCommons.cs
+@@ -21,7 +21,9 @@ namespace AdaptiveRoads.Patches.Segment {
+         internal static ushort s_currentSegmentID;
+ 
+         // Called by transpiler AFTER game's base CheckFlags already ran.
+-        // turnAround has already been set by the game's CheckFlags call.
++        // Reconsider both orientations using vanilla AND AN requirements together.
++        // The direction selected by vanilla alone may fail AN's forward requirements
++        // while the backward orientation satisfies both sets of requirements.
+         // segmentID is either passed directly (methods that have it as a param: PopulateGroupData,
+         // CalculateGroupData) or comes from s_currentSegmentID (RenderSegments, which has none).
+         public static bool CheckFlags(NetInfo.Segment segmentInfo, ushort segmentID, ref bool turnAround) {
+@@ -46,18 +48,31 @@ namespace AdaptiveRoads.Patches.Segment {
+             if (reverse) {
+                 Helpers.Swap(ref segmentTailFlags, ref segmentHeadFlags);
+                 Helpers.Swap(ref nodeTailFlags, ref nodeHeadFlags);
++                Helpers.Swap(ref nodeExtTailFlags, ref nodeExtHeadFlags);
+             }
+ 
+-            return segmentInfoExt.CheckFlags(
+-                netSegmentExt.m_flags,
+-                tailFlags: segmentTailFlags,
+-                headFlags: segmentHeadFlags,
+-                tailNodeFlags: nodeTailFlags,
+-                headNodeFlags: nodeHeadFlags,
+-                tailNodeExtFlags: nodeExtTailFlags,
+-                headNodeExtFlags: nodeExtHeadFlags,
+-                userData: netSegmentExt.UserData,
+-                turnAround);
++            for (int direction = 0; direction < 2; ++direction) {
++                bool reverseMesh = direction != 0;
++                if (!segmentInfo.CheckFlags(netSegment.m_flags, netSegment.m_flags2, reverseMesh))
++                    continue;
++
++                if (segmentInfoExt.CheckFlags(
++                    netSegmentExt.m_flags,
++                    tailFlags: segmentTailFlags,
++                    headFlags: segmentHeadFlags,
++                    tailNodeFlags: nodeTailFlags,
++                    headNodeFlags: nodeHeadFlags,
++                    tailNodeExtFlags: nodeExtTailFlags,
++                    headNodeExtFlags: nodeExtHeadFlags,
++                    userData: netSegmentExt.UserData,
++                    turnAround: reverseMesh)) {
++                    turnAround = reverseMesh;
++                    return true;
++                }
++            }
++
++            turnAround = false;
++            return false;
+         }
+ 
+         static MethodInfo mCheckFlagsExt => typeof(CheckSegmentFlagsCommons).GetMethod(

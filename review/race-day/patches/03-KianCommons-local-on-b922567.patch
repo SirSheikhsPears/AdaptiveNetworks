@@ -1,0 +1,60 @@
+diff --git a/KianCommons/Util/DynamicFlagsUtil.cs b/KianCommons/Util/DynamicFlagsUtil.cs
+index 06c319a..afe272d 100644
+--- a/KianCommons/Util/DynamicFlagsUtil.cs
++++ b/KianCommons/Util/DynamicFlagsUtil.cs
+@@ -2,21 +2,21 @@ namespace KianCommons;
+ public static class DynamicFlagsUtil {
+     public readonly static ulong[] EMPTY_FLAGS = new ulong[0];
+     public readonly static string[] EMPTY_TAGS = new string[0];
+-    public readonly static DynamicFlags NONE = new DynamicFlags(EMPTY_FLAGS);
++    public readonly static DynamicFlags<NetInfo> NONE = DynamicFlags<NetInfo>.empty;
+ 
+-    public static bool CheckFlags(this DynamicFlags flags, DynamicFlags required, DynamicFlags forbidden) =>
+-        DynamicFlags.Check(flags, required: required, forbidden: forbidden);
++    public static bool CheckFlags(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> required, DynamicFlags<NetInfo> forbidden) =>
++        DynamicFlags<NetInfo>.CheckAll(flags, required, forbidden);
+ 
+-        public static bool CheckFlags(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> required, DynamicFlags<NetInfo> forbidden) =>
+-            DynamicFlags<NetInfo>.CheckAll(flags, required, forbidden);
++    public static bool IsAnyFlagSet(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> flags2) =>
++        !DynamicFlags<NetInfo>.CheckAll(flags, DynamicFlags<NetInfo>.empty, flags2);
+ 
+-        public static bool IsAnyFlagSet(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> flags2) =>
+-            !DynamicFlags<NetInfo>.CheckAll(flags, DynamicFlags<NetInfo>.empty, flags2);
++    public static bool IsAnyFlagSetOrEmpty(this DynamicFlags<NetInfo> flags, DynamicFlags<NetInfo> flags2) =>
++        (flags.IsEmpty && flags2.IsEmpty) || flags.IsAnyFlagSet(flags2);
+ 
+ 
+     public static bool CheckFlags(this DynamicFlags2 flags, DynamicFlags2 required, DynamicFlags2 forbidden) =>
+         DynamicFlags2.CheckFlags(flags, required: required, forbidden: forbidden);
+ 
+     public static bool IsAnyFlagSet(this DynamicFlags2 flags, DynamicFlags2 flags2) =>
+-        !DynamicFlags2.IsAnyFlagSet(flags, flags2);
++        DynamicFlags2.IsAnyFlagSet(flags, flags2);
+ }
+diff --git a/KianCommons/Util/NetUtil.cs b/KianCommons/Util/NetUtil.cs
+index b8c68c1..8392d45 100644
+--- a/KianCommons/Util/NetUtil.cs
++++ b/KianCommons/Util/NetUtil.cs
+@@ -16,7 +16,15 @@ namespace KianCommons {
+     }
+ 
+     public static class NetUtil {
+-        public static Dictionary<string, int> kTags = ReflectionHelpers.GetFieldValue<DynamicFlags<NetInfo>>("kTags") as Dictionary<string, int>;
++        public static Dictionary<string, int> kTags;
++
++        // Preserve AN-EF's explicit initialization and useful missing-field error.
++        // Race Day moved the network tag registry from NetInfo to DynamicFlags<NetInfo>.
++        static NetUtil() {
++            kTags = ReflectionHelpers.GetFieldValue<DynamicFlags<NetInfo>>("kTags") as Dictionary<string, int>;
++            if (kTags == null)
++                throw new NetServiceException("DynamicFlags<NetInfo>.kTags not found");
++        }
+ 
+         /// <summary>
+         /// WARNING: low performance!
+@@ -892,4 +900,3 @@ namespace KianCommons {
+         IEnumerator IEnumerable.GetEnumerator() => this;
+     }
+ }
+-

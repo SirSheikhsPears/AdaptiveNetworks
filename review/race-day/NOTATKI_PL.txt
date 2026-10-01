@@ -1,0 +1,24 @@
+FORK DO PRZEGLĄDU — 1 PAŹDZIERNIKA 2026
+
+Repozytorium: https://github.com/SirSheikhsPears/AdaptiveNetworks
+Gałąź: fix-raceday-flags
+Kod AN: commit 22c84acec04c6b1c52fb8f848432c9e44249202a
+
+Użytkownik chce obecnie udostępnić pracę do przeglądu w swoim forku.
+Nie należy na tym etapie proponować zmian Madisonianowi ani otwierać PR.
+
+Potwierdzono dokładną zgodność wszystkich pięciu plików AN z przygotowaną
+paczką. Nie ma dodatkowych zmian ani podwójnego katalogu AdaptiveRoads.
+
+REVIEW-RACEDAY.md jest angielskim przewodnikiem dla osób przeglądających kod.
+Folder review/race-day zawiera patche KianCommons, ich podstawy i wyniki
+sprawdzeń. Patche przedstawiają komplet funkcjonalnych zmian biblioteki,
+ale samo umieszczenie ich w repo nie aktualizuje submodułu.
+
+Obecna gałąź nadal wskazuje stary commit KianCommons 69a5f8. Aby inne osoby
+mogły zbudować pełny odpowiednik test2, trzeba zapisać poprawki w repo
+KianCommons i zaktualizować odwołanie do tej biblioteki w AN.
+
+Mur na zgłoszonych Custom i Bend został naprawiony w łącznym buildzie test2.
+Parking, inne konfiguracje węzłów, odwrócenia, LHT i LOD wymagają dalszych testów.
+Nie przedstawiać tego jako potwierdzonej naprawy wszystkich funkcji AN.
