@@ -21,7 +21,9 @@ namespace AdaptiveRoads.Patches.Segment {
         internal static ushort s_currentSegmentID;
 
         // Called by transpiler AFTER game's base CheckFlags already ran.
-        // turnAround has already been set by the game's CheckFlags call.
+        // Reconsider both orientations using vanilla AND AN requirements together.
+        // The direction selected by vanilla alone may fail AN's forward requirements
+        // while the backward orientation satisfies both sets of requirements.
         // segmentID is either passed directly (methods that have it as a param: PopulateGroupData,
         // CalculateGroupData) or comes from s_currentSegmentID (RenderSegments, which has none).
         public static bool CheckFlags(NetInfo.Segment segmentInfo, ushort segmentID, ref bool turnAround) {
@@ -46,18 +48,31 @@ namespace AdaptiveRoads.Patches.Segment {
             if (reverse) {
                 Helpers.Swap(ref segmentTailFlags, ref segmentHeadFlags);
                 Helpers.Swap(ref nodeTailFlags, ref nodeHeadFlags);
+                Helpers.Swap(ref nodeExtTailFlags, ref nodeExtHeadFlags);
             }
 
-            return segmentInfoExt.CheckFlags(
-                netSegmentExt.m_flags,
-                tailFlags: segmentTailFlags,
-                headFlags: segmentHeadFlags,
-                tailNodeFlags: nodeTailFlags,
-                headNodeFlags: nodeHeadFlags,
-                tailNodeExtFlags: nodeExtTailFlags,
-                headNodeExtFlags: nodeExtHeadFlags,
-                userData: netSegmentExt.UserData,
-                turnAround);
+            for (int direction = 0; direction < 2; ++direction) {
+                bool reverseMesh = direction != 0;
+                if (!segmentInfo.CheckFlags(netSegment.m_flags, netSegment.m_flags2, reverseMesh))
+                    continue;
+
+                if (segmentInfoExt.CheckFlags(
+                    netSegmentExt.m_flags,
+                    tailFlags: segmentTailFlags,
+                    headFlags: segmentHeadFlags,
+                    tailNodeFlags: nodeTailFlags,
+                    headNodeFlags: nodeHeadFlags,
+                    tailNodeExtFlags: nodeExtTailFlags,
+                    headNodeExtFlags: nodeExtHeadFlags,
+                    userData: netSegmentExt.UserData,
+                    turnAround: reverseMesh)) {
+                    turnAround = reverseMesh;
+                    return true;
+                }
+            }
+
+            turnAround = false;
+            return false;
         }
 
         static MethodInfo mCheckFlagsExt => typeof(CheckSegmentFlagsCommons).GetMethod(

@@ -81,6 +81,16 @@ namespace AdaptiveRoads.Manager {
                 return flags.CheckFlags(segmentInfo.m_backwardRequired, segmentInfo.m_backwardForbidden);
         }
 
+        // Check one specific orientation, including the flag word added by Race Day.
+        // The game's ref-bool overload chooses a direction before AN flags are checked.
+        public static bool CheckFlags(this NetInfo.Segment segmentInfo, NetSegment.Flags flags,
+                NetSegment.Flags2 flags2, bool turnAround) {
+            var required2 = turnAround ? segmentInfo.m_backwardRequired2 : segmentInfo.m_forwardRequired2;
+            var forbidden2 = turnAround ? segmentInfo.m_backwardForbidden2 : segmentInfo.m_forwardForbidden2;
+            return segmentInfo.CheckFlags(flags, turnAround) &&
+                (flags2 & (required2 | forbidden2)) == required2;
+        }
+
         /// <param name="layerMask">for calculate/populate group data <c>layerMask=1<<layer</c></param>
         /// <returns>if there is any matching layer</returns>
         public static bool CheckNetLayers(this NetInfo info, int layerMask) => info && (layerMask & info.m_netLayers) != 0;

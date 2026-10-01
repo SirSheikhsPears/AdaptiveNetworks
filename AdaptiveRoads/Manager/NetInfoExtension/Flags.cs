@@ -231,14 +231,16 @@ namespace AdaptiveRoads.Manager {
                     Flags = DynamicFlags<NetInfo>.empty; // simplify.
             }
 
-            public virtual bool Check(DynamicFlags<NetInfo> flags) => !Flags.IsEmpty || DynamicFlags<NetInfo>.CheckAll(Flags, DynamicFlags<NetInfo>.empty, flags);
+            public virtual bool Check(DynamicFlags<NetInfo> flags) => IsAnyFlagSet(flags);
 
-            // Extension method to check if any flagset is flagged
+            // With no required flags, rejecting the other set as forbidden detects overlap.
             private bool IsAnyFlagSet(DynamicFlags<NetInfo> flags) => !DynamicFlags<NetInfo>.CheckAll(Flags, DynamicFlags<NetInfo>.empty, flags);
 
             public bool IsNone() => Flags.IsEmpty;
 
-            public virtual bool CheckOrNone(DynamicFlags<NetInfo> flags) => Flags.IsEmpty || DynamicFlags<NetInfo>.CheckAll(Flags, DynamicFlags<NetInfo>.empty, flags);
+            // Preserve the pre-Race Day rule: a shared flag, or both sets empty.
+            public virtual bool CheckOrNone(DynamicFlags<NetInfo> flags) =>
+                (Flags.IsEmpty && flags.IsEmpty) || IsAnyFlagSet(flags);
 
 
 
