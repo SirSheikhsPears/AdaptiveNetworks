@@ -18,18 +18,8 @@ namespace AdaptiveRoads.Patches.Segment {
             return typeof(NetSegment).GetMethod("RenderInstance", BindingFlags.NonPublic | BindingFlags.Instance, null, types, null);
         }
 
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original) {
-            try {
-                var codes = TranspilerUtils.ToCodeList(instructions);
-                // Set s_currentSegmentID before the game calls RenderSegments so our
-                // RenderSegmentsPatch transpiler can look up segment extension data.
-                CheckSegmentFlagsCommons.PatchSetCurrentSegmentID(codes, original);
-                Log.Info($"{ReflectionHelpers.ThisMethod} patched {original} successfully!");
-                return codes;
-            } catch(Exception e) {
-                Log.Error(e.ToString());
-                throw e;
-            }
+        public static void Prefix(ushort segmentID) {
+            CheckSegmentFlagsCommons.s_currentSegmentID = segmentID;
         }
     } // end class
 

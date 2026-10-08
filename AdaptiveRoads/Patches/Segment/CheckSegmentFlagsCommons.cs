@@ -79,34 +79,13 @@ namespace AdaptiveRoads.Patches.Segment {
             ?? throw new Exception("mCheckFlagsExt is null");
         static MethodInfo mCheckFlags => typeof(NetInfo.Segment).GetMethod("CheckFlags")
             ?? throw new Exception("mCheckFlags is null");
-        static MethodInfo mRenderSegments => typeof(NetSegment).GetMethod(
-            "RenderSegments", BindingFlags.NonPublic | BindingFlags.Instance, null,
-            new[] { typeof(RenderManager.CameraInfo), typeof(NetInfo), typeof(RenderManager.Instance), typeof(float), typeof(NetManager) }, null)
-            ?? throw new Exception("mRenderSegments is null");
         static FieldInfo fCurrentSegmentID => typeof(CheckSegmentFlagsCommons)
             .GetField(nameof(s_currentSegmentID), BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             ?? throw new Exception("fCurrentSegmentID is null");
 
-        /// <summary>
-        /// Injected into NetSegment.RenderInstance — sets s_currentSegmentID before calling RenderSegments
-        /// so our RenderSegments patch can access the segment ID.
-        /// </summary>
-        public static void PatchSetCurrentSegmentID(List<CodeInstruction> codes, MethodBase method) {
-            CodeInstruction ldarg_SegmentID = TranspilerUtils.GetLDArg(method, "segmentID");
-
-            int index = codes.Search(c => c.Calls(mRenderSegments), throwOnError: false);
-            if (index < 0) {
-                throw new Exception($"PatchSetCurrentSegmentID: Could not find call to RenderSegments in {method.Name}");
-            }
-
-            codes.InsertInstructions(index, new[] {
-                ldarg_SegmentID,
-                new CodeInstruction(OpCodes.Stsfld, fCurrentSegmentID),
-            });
-        }
-
         // Injects an AR extension flag check after the game's CheckFlags call in RenderSegments.
-        // Uses s_currentSegmentID (set before the RenderSegments call) to look up segment extension data.
+        // Uses s_currentSegmentID, set at RenderInstance entry by the Harmony Prefix,
+        // to look up the correct segment extension data on every rendering path.
         public static void PatchCheckFlags(List<CodeInstruction> codes, MethodBase method, int occurance = 1) {
             // callvirt NetInfo+Segment.CheckFlags(Flags, Flags2, bool&)
             var index = codes.Search(c => c.Calls(mCheckFlags), count: occurance, throwOnError: false);
