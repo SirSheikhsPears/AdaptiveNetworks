@@ -19,7 +19,7 @@
     <DefineConstants>DEBUG;TRACE;FAST_TEST_HARMONY</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Workshop' ">
-    <ContentID>2414618415</ContentID>
+    <ContentID></ContentID>
     <DefineConstants></DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
