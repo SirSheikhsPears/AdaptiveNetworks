@@ -47,7 +47,6 @@ namespace AdaptiveRoads.Patches.Segment {
             if (reverse) {
                 Helpers.Swap(ref segmentTailFlags, ref segmentHeadFlags);
                 Helpers.Swap(ref nodeTailFlags, ref nodeHeadFlags);
-                Helpers.Swap(ref nodeExtTailFlags, ref nodeExtHeadFlags);
             }
 
             for (int direction = 0; direction < 2; ++direction) {
