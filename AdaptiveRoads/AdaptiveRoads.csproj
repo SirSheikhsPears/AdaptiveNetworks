@@ -25,14 +25,18 @@
   <PropertyGroup>
     <!-- prefer a local development folder if present -->
     <ManagedDLLPath>../dependencies</ManagedDLLPath>
-    <!-- platform-specific fallbacks when dependencies folder is missing -->
-    <ManagedDLLPath Condition="!Exists('$(ManagedDLLPath)') and '$(OS)' == 'Windows_NT'">$(MSBuildProgramFiles32)/Steam/steamapps/common/Cities_Skylines/Cities_Data/Managed</ManagedDLLPath>
-    <ManagedDLLPath Condition="!Exists('$(ManagedDLLPath)') and '$(OS)' != 'Windows_NT'">$(HOME)/Library/Application Support/Steam/steamapps/common/Cities_Skylines/Cities.app/Contents/Resources/Data/Managed</ManagedDLLPath>
-    <!-- keep old steam path logic for workshop deployment (mostly Windows/Mac) -->
+
+    <!-- locate Steam, including non-default Windows installations via registry -->
     <SteamPath Condition="'$(OS)' != 'Windows_NT'">$(HOME)/Library/Application Support/Steam/</SteamPath>
     <SteamPath Condition="'$(OS)' == 'Windows_NT' and !Exists('$(SteamPath)')">$(ProgramFiles)/Steam</SteamPath>
     <SteamPath Condition="'$(OS)' == 'Windows_NT' and !Exists('$(SteamPath)')">$(Registry:HKEY_CURRENT_USER\Software\Valve\Steam@SteamPath)</SteamPath>
+
     <CSPath>$(SteamPath)/steamapps/common/Cities_Skylines</CSPath>
+
+    <!-- platform-specific fallbacks when dependencies folder is missing -->
+    <ManagedDLLPath Condition="!Exists('$(ManagedDLLPath)') and '$(OS)' == 'Windows_NT'">$(CSPath)/Cities_Data/Managed</ManagedDLLPath>
+    <ManagedDLLPath Condition="!Exists('$(ManagedDLLPath)') and '$(OS)' != 'Windows_NT'">$(CSPath)/Cities.app/Contents/Resources/Data/Managed</ManagedDLLPath>
+
     <ContentPath>$(SteamPath)/steamapps/workshop/content/255710/$(ContentID)</ContentPath>
     <AssemblySearchPaths>
       $(AssemblySearchPaths);
