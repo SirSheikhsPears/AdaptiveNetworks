@@ -19,10 +19,11 @@ public static class CalculateCorner_ShiftPatch {
     [UsedImplicitly]
     [HarmonyBefore("CS.Kian.NodeController")]
     static MethodBase TargetMethod() {
-        // We need the overload that returns (out Vector3, out Vector3, out bool)
+        // Patch the Race Day overload that contains the actual corner calculation.
         var types = new Type[] {
             typeof(ushort), typeof(bool), typeof(bool), typeof(bool),
-            typeof(Vector3).MakeByRefType(), typeof(Vector3).MakeByRefType(), typeof(bool).MakeByRefType()
+            typeof(Vector3).MakeByRefType(), typeof(Vector3).MakeByRefType(),
+            typeof(bool).MakeByRefType(), typeof(float)
         };
         return typeof(NetSegment).GetMethod(
                 nameof(NetSegment.CalculateCorner),
