@@ -125,12 +125,7 @@ namespace AdaptiveRoads.Manager{
 
                 bool parkingAllowed = LaneData.LaneInfo.m_laneType == NetInfo.LaneType.Parking;
                 if(parkingAllowed && ParkingMan != null) {
-                    // Parking lanes typically have m_finalDirection=None which maps to index 0 (Forward)
-                    // regardless of which side the lane is actually on. Instead, derive the TMPE direction
-                    // from the physical lane position: for RHT, right-side = Forward, left-side = Backward.
-                    bool rightSide = LaneData.RightSide;
-                    var parkingDir = rightSide ? NetInfo.Direction.Forward : NetInfo.Direction.Backward;
-                    parkingAllowed &= ParkingMan.IsParkingAllowed(LaneData.SegmentID, parkingDir);
+                    parkingAllowed &= ParkingMan.IsParkingAllowed(LaneData.SegmentID, LaneData.LaneInfo.m_finalDirection);
                 }
                 m_flags = m_flags.SetFlags(Flags.ParkingAllowed, parkingAllowed);
 
