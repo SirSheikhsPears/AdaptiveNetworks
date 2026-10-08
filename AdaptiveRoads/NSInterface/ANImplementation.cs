@@ -14,7 +14,7 @@ namespace AdaptiveRoads.NSInterface {
 
 
     public class ANImplementation : NSIntegrationBase<ANImplementation> {
-        public override string ID => "Adaptive Networks";
+        public override string ID => "Adaptive Roads";
 
         public override int Index { get; set; }
 
