@@ -99,7 +99,9 @@ namespace AdaptiveRoads.Manager {
                 } else {
                     Helpers.Swap(ref tailFlags, ref headFlags);
                     Helpers.Swap(ref tailNodeFlags, ref headNodeFlags);
-                    Helpers.Swap(ref tailNodeExtFlags, ref headNodeExtFlags);
+                    // Note: Kian's original AN did not swap TailNode/HeadNode extended flags here.
+                    // This is asymmetric, but changing it could break assets authored against
+                    // the original behavior, so compatibility is preserved intentionally.
                     ret = Backward.CheckFlags(flags) && CheckEndFlags(
                         tailFlags: tailFlags,
                         headFlags: headFlags,
