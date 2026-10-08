@@ -99,6 +99,7 @@ namespace AdaptiveRoads.Manager {
                 } else {
                     Helpers.Swap(ref tailFlags, ref headFlags);
                     Helpers.Swap(ref tailNodeFlags, ref headNodeFlags);
+                    Helpers.Swap(ref tailNodeExtFlags, ref headNodeExtFlags);
                     ret = Backward.CheckFlags(flags) && CheckEndFlags(
                         tailFlags: tailFlags,
                         headFlags: headFlags,
