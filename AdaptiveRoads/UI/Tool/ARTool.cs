@@ -233,7 +233,7 @@ namespace AdaptiveRoads.UI.Tool {
         protected override void Awake() {
             try {
                 base.Awake();
-                string iconPath = UUIHelpers.GetFullPath<LifeCycle.UserMod>("Resources", "uui_ar.png");
+                string iconPath = UUIHelpers.GetFullPath<LifeCycle.UserMod>("uui_ar.png");
                 button_ = UUIHelpers.RegisterToolButton(
                     name: "AdaptiveNetworks",
                     groupName: null, // default group

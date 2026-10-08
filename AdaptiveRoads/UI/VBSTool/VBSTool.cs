@@ -16,7 +16,7 @@ namespace AdaptiveRoads.UI.VBSTool {
         protected override void Awake() {
             base.Awake();
             try {
-                string iconPath = UUIHelpers.GetFullPath<LifeCycle.UserMod>("Resources", "uui_vbs.png");
+                string iconPath = UUIHelpers.GetFullPath<LifeCycle.UserMod>("uui_vbs.png");
                 button_ = UUIHelpers.RegisterToolButton(
                     name: "AdaptiveNetworks",
                     groupName: null, // default group
