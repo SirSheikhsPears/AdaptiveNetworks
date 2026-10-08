@@ -125,6 +125,9 @@ namespace AdaptiveRoads.Manager{
 
                 bool parkingAllowed = LaneData.LaneInfo.m_laneType == NetInfo.LaneType.Parking;
                 if(parkingAllowed && ParkingMan != null) {
+                    // Preserve original Kian/T.D.W. behavior.
+                    // A later Race Day-era workaround used lane side to derive TM:PE direction,
+                    // but its compatibility with existing AN assets is unverified.
                     parkingAllowed &= ParkingMan.IsParkingAllowed(LaneData.SegmentID, LaneData.LaneInfo.m_finalDirection);
                 }
                 m_flags = m_flags.SetFlags(Flags.ParkingAllowed, parkingAllowed);
