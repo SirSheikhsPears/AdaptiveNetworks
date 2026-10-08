@@ -15,15 +15,33 @@ public static class CalculateCorner_SharpPatch {
     public static bool SharpnerOverriden;
 
     static MethodBase TargetMethod() {
-        // public void CalculateCorner(ushort segmentID, bool heightOffset, bool start, bool leftSide,
-        // out Vector3 cornerPos, out Vector3 cornerDirection, out bool smooth)
         var types = new Type[] {
-            typeof(ushort), typeof(bool), typeof(bool), typeof(bool),
-            typeof(Vector3).MakeByRefType(), typeof(Vector3).MakeByRefType(), typeof(bool).MakeByRefType()
-        };
+        typeof(NetInfo),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(NetInfo),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(NetInfo),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(Vector3),
+        typeof(ushort),
+        typeof(ushort),
+        typeof(bool),
+        typeof(bool),
+        typeof(Vector3).MakeByRefType(),
+        typeof(Vector3).MakeByRefType(),
+        typeof(bool).MakeByRefType(),
+        typeof(float),
+    };
+
         return typeof(NetSegment).GetMethod(
                 nameof(NetSegment.CalculateCorner),
-                BindingFlags.Public | BindingFlags.Instance, null, types, null)
+                BindingFlags.Public | BindingFlags.Static, null, types, null)
             ?? throw new System.Exception("CalculateCornerPatch Could not find target method.");
     }
 
