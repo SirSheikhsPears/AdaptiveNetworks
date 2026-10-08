@@ -13,6 +13,7 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
         public Matrix4x4 LeftMatrix, RightMatrix;
         public Vector4 MeshScale;
         public Vector4 ObjectIndex; // color location
+        public Vector2 ObjectColorIndex;
         public Color Color;
         public Quaternion Rotation => Quaternion.identity;
         public Vector3 Position;
@@ -179,7 +180,7 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
                     trackInfo.ParentInfo, tempSegmentInfo,
                     leftMatrix: this.LeftMatrix, rightMatrix: this.RightMatrix,
                     meshScale: this.MeshScale, objectIndex: this.ObjectIndex,
-                    ref vertexIndex, ref triangleIndex, this.Position, meshData, ref _, new Vector2());
+                    ref vertexIndex, ref triangleIndex, this.Position, meshData, ref _, this.ObjectColorIndex);
             }
         }
     }
