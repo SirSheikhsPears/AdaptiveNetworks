@@ -350,3 +350,6 @@ healthchecksdb
 
 # include libs
 !/libs
+# ANR private build state
+/.anr-build-state/
+/build/ANR.Local.props
