@@ -1,0 +1,38 @@
+<Project>
+  <PropertyGroup>
+    <ANRRepo>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/..'))</ANRRepo>
+    <_ANRObj>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)'))/.</_ANRObj>
+    <_ANRToken>$([System.Guid]::NewGuid().ToString('N'))</_ANRToken>
+    <ANRPython Condition="'$(ANRPython)' == '' and '$(OS)' == 'Windows_NT'">python</ANRPython>
+    <ANRPython Condition="'$(ANRPython)' == ''">python3</ANRPython>
+    <ANRCoreCompileSource Condition="'$(ANRCoreCompileSource)' == '' and '$(CSharpCoreTargetsPath)' != ''">$(CSharpCoreTargetsPath)</ANRCoreCompileSource>
+    <ANRCoreCompileSource Condition="'$(ANRCoreCompileSource)' == ''">$(MSBuildToolsPath)/Roslyn/Microsoft.CSharp.Core.targets</ANRCoreCompileSource>
+    <ANRVersionAllocationMode Condition="'$(ANRVersionAllocationMode)' == '' and '$(_ANRCI)' == 'true'">Blocked</ANRVersionAllocationMode>
+    <ANRVersionAllocationMode Condition="'$(ANRVersionAllocationMode)' == ''">Local</ANRVersionAllocationMode>
+    <ANRLocalDeployEnabled Condition="'$(ANRLocalDeployEnabled)' == '' and '$(_ANRCI)' == 'true'">false</ANRLocalDeployEnabled>
+    <ANRLocalZipEnabled Condition="'$(ANRLocalZipEnabled)' == '' and '$(_ANRCI)' == 'true'">false</ANRLocalZipEnabled>
+    <ANRArchiveEnabled Condition="'$(ANRArchiveEnabled)' == '' and '$(_ANRCI)' == 'true'">false</ANRArchiveEnabled>
+    <ANRLocalDeployEnabled Condition="'$(ANRLocalDeployEnabled)' == ''">true</ANRLocalDeployEnabled>
+    <ANRLocalZipEnabled Condition="'$(ANRLocalZipEnabled)' == ''">true</ANRLocalZipEnabled>
+    <ANRArchiveEnabled Condition="'$(ANRArchiveEnabled)' == '' and '$(Configuration)' == 'Debug'">false</ANRArchiveEnabled>
+    <ANRArchiveEnabled Condition="'$(ANRArchiveEnabled)' == ''">true</ANRArchiveEnabled>
+    <ANRArchiveRoot Condition="'$(ANRArchiveRoot)' == '' and '$(OS)' == 'Windows_NT' and '$(Configuration)' == 'ALPHA'">R:\ADVANCED Networks\REMAIN\GITHUB-STEAM\ALPHA</ANRArchiveRoot>
+    <ANRArchiveRoot Condition="'$(ANRArchiveRoot)' == '' and '$(OS)' == 'Windows_NT' and '$(Configuration)' == 'STABLE'">R:\ADVANCED Networks\REMAIN\GITHUB-STEAM\STABLE</ANRArchiveRoot>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(DesignTimeBuild)' != 'true' or Exists('$(_ANRObj)/ANR.Version.g.cs')">
+    <Compile Include="$(_ANRObj)/ANR.Version.g.cs" />
+  </ItemGroup>
+  <Import Project="ANR.CoreCompile.generated.targets" Condition="Exists('ANR.CoreCompile.generated.targets')" />
+  <Target Name="ANRPreflight" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)ANR.CoreCompile.generated.targets')" Text="ANR: generate and review the CoreCompile override from the actual installed toolchain first." />
+    <Error Condition="'$(_ANRCI)' != 'true' and ('$(Configuration)' == 'ALPHA' or '$(Configuration)' == 'STABLE') and '$(ANRArchiveRoot)' == ''" Text="ANR: no archive root. On macOS explicitly select the mounted archive root; never assume an R: drive." />
+    <Exec Command="&quot;$(ANRPython)&quot; &quot;$(ANRRepo)/scripts/anr_build.py&quot; preflight --repo &quot;$(ANRRepo)&quot; --token &quot;$(_ANRToken)&quot; --configuration &quot;$(Configuration)&quot; --mode &quot;$(ANRVersionAllocationMode)&quot; --ci-version &quot;$(ANRCIVersion)&quot; --core-file &quot;$(ANRCoreCompileSource)&quot; --core-sha &quot;$(ANRCoreCompileSHA256)&quot;" />
+  </Target>
+  <Target Name="ANRUnlock" Condition="'$(_ANRCI)' != 'true' and '$(DesignTimeBuild)' != 'true'">
+    <Exec Command="&quot;$(ANRPython)&quot; &quot;$(ANRRepo)/scripts/anr_build.py&quot; unlock --repo &quot;$(ANRRepo)&quot; --token &quot;$(_ANRToken)&quot;" />
+  </Target>
+  <Target Name="ANRPostBuild" AfterTargets="Build" Condition="'$(_ANRCI)' != 'true' and '$(DesignTimeBuild)' != 'true'">
+    <Exec Condition="'$(_ANRCscRecorded)' == '0'" Command="&quot;$(ANRPython)&quot; &quot;$(ANRRepo)/scripts/anr_build.py&quot; finish --repo &quot;$(ANRRepo)&quot; --obj &quot;$(_ANRObj)&quot; --token &quot;$(_ANRToken)&quot; --configuration &quot;$(Configuration)&quot; --bin &quot;$(TargetDir).&quot; --pdb2mdb &quot;$(PkgMono_Unofficial_pdb2mdb)/tools/pdb2mdb.exe&quot; --toolchain &quot;MSBuild $(MSBuildVersion), SDK $(NETCoreSdkVersion), Roslyn target $(ANRCoreCompileSHA256)&quot; --deploy-dir &quot;$(DeployDir)&quot; --archive-root &quot;$(ANRArchiveRoot)&quot; --deploy-enabled &quot;$(ANRLocalDeployEnabled)&quot; --zip-enabled &quot;$(ANRLocalZipEnabled)&quot; --archive-enabled &quot;$(ANRArchiveEnabled)&quot; --approved-preview &quot;$(ANRApprovedPreviewImage)&quot;" />
+    <CallTarget Targets="ANRUnlock" Condition="'$(_ANRCscRecorded)' != '0'" />
+  </Target>
+</Project>
