@@ -2,15 +2,36 @@
   <PropertyGroup>
     <TargetFramework>net35</TargetFramework>
     <Deterministic>false</Deterministic>
-    <AssemblyVersion>4.0.0</AssemblyVersion>
+    <Version>4.0.5.0</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Nullable>enable</Nullable>
     <PathMap>$(MSBuildProjectDirectory)\=$(ProjectName)\</PathMap>
-    <Configurations>Debug;Release;FAST_TEST_PATCHES;Workshop;</Configurations>
+    <Configurations>Debug;Release;ALPHA;STABLE;FAST_TEST_PATCHES;Workshop;</Configurations>
     <ProduceReferenceAssemblies>true</ProduceReferenceAssemblies>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_ANRManaged Condition="'$(Configuration)' == 'Debug' or '$(Configuration)' == 'ALPHA' or '$(Configuration)' == 'STABLE'">true</_ANRManaged>
+    <_ANRLegacy Condition="'$(Configuration)' == 'Release' or '$(Configuration)' == 'Workshop' or '$(Configuration)' == 'FAST_TEST_PATCHES'">true</_ANRLegacy>
+    <_ANRCI Condition="('$(GITHUB_ACTIONS)' != '' and '$(GITHUB_ACTIONS)' != 'false') or ('$(CI)' != '' and '$(CI)' != 'false') or ('$(TF_BUILD)' != '' and '$(TF_BUILD)' != 'false')">true</_ANRCI>
+  </PropertyGroup>
+  <Import Project="../build/ANR.Local.props" Condition="Exists('../build/ANR.Local.props')" />
+  <PropertyGroup Condition="'$(_ANRManaged)' == 'true'">
+    <CustomAfterMicrosoftCSharpTargets>$(MSBuildProjectDirectory)\..\build\ANR.Build.targets</CustomAfterMicrosoftCSharpTargets>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'ALPHA' or '$(Configuration)' == 'STABLE'">
+    <Optimize>true</Optimize>
+    <DisableImplicitConfigurationDefines>true</DisableImplicitConfigurationDefines>
+    <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -208,6 +229,12 @@
     <ProjectReference Include="..\prefab-metadata\PrefabMetadata.csproj" />
     <ProjectReference Include="..\PrefabMetaDataAPI\PrefabMetadataAPI.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'ALPHA' or '$(Configuration)' == 'STABLE'">
+    <ProjectReference Update="..\prefab-metadata\PrefabMetadata.csproj;..\PrefabMetaDataAPI\PrefabMetadataAPI.csproj">
+      <AdditionalProperties>Configuration=Release</AdditionalProperties>
+      <SetConfiguration>Configuration=Release</SetConfiguration>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <None Update="Resources\NS.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -225,8 +252,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <Target Name="DeployToModDirectory" AfterTargets="Build">
+  <Target Name="DeployToModDirectory" AfterTargets="Build" Condition="'$(_ANRLegacy)' == 'true' and '$(_ANRCI)' != 'true' and '$(DesignTimeBuild)' != 'true'">
     <Message Importance="high" Text="DeployToModDirectory ..." />
     <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
       <Output TaskParameter="Assemblies" ItemName="Targets" />
@@ -236,7 +262,7 @@
       <AuxilaryFiles Include="$(TargetDir)CitiesHarmony.API.dll" />
       <AuxilaryFiles Include="$(TargetDir)UnifiedUILib.dll;" />
       <AuxilaryFiles Include="$(TargetDir)\Resources\*.png" />
-      <AuxilaryFiles Include="$(SolutionDir)\libs\FbxFormatConverter.exe" />
+      <AuxilaryFiles Include="$(MSBuildProjectDirectory)\..\libs\FbxFormatConverter.exe" />
       <AuxilaryFiles Include="$(TargetDir)NS.Helpers.dll" />
       <VersionNumber Include="@(Targets->'%(Version)')" />
     </ItemGroup>
@@ -249,26 +275,18 @@
       <ZipFileName>$(ProjectName)-V@(VersionNumber)-$(GitCommit)-$(Configuration).zip</ZipFileName>
       <ZipFile>$(DeployDir)/../$(ZipFileName)</ZipFile>
     </PropertyGroup>
-    <ItemGroup>
-      <OldZipFiles Include="$(DeployDir)/../$(ProjectName)-*-$(Configuration).zip" />
-    </ItemGroup>
-    
     <Delete Files="$(TargetPath).mdb;$(TargetDir)PrefabMetaData.dll.mdb" />
     <Exec Condition="'$(OS)'=='Windows_NT'" Command="&quot;$(pdb2mdb)&quot; &quot;$(TargetPath)&quot;" />
     <Copy Condition="'$(OS)'=='Windows_NT'" SourceFiles="$(TargetPath).mdb" DestinationFolder="$(DeployDir)" />
-
     <!--<Copy Condition="'$(OS)'=='Windows_NT'" SourceFiles="$(TargetDir)PrefabMetaData.dll.mdb" DestinationFolder="$(DeployDir)" />
     <Exec Condition="'$(OS)'=='Windows_NT'" Command="&quot;$(pdb2mdb)&quot; &quot;$(TargetDir)PrefabMetaData.dll&quot;" />-->
-
     <Copy SourceFiles="@(AuxilaryFiles)" DestinationFolder="$(DeployDir)" />
-
     <Delete Files="$(DeployDir)$(TargetFileName)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
     <Message Importance="high" Text="AssemblyVersion= @(VersionNumber) time=$(Now)" />
-    <Delete Files="@(OldZipFiles)" />
     <!-- zip step disabled; user does not want archives created during build -->
   </Target>
-  <Target Name="DeployToWorkshop" AfterTargets="DeployToModDirectory" Condition="'$(ContentID)'!=''">
+  <Target Name="DeployToWorkshop" AfterTargets="DeployToModDirectory" Condition="'$(ContentID)'!='' and '$(_ANRLegacy)' == 'true' and '$(_ANRCI)' != 'true' and '$(DesignTimeBuild)' != 'true'">
     <ItemGroup>
       <FilesToDelete Include="$(ContentPath)/*.*" Exclude="$(ContentPath)/PreviewImage.png" />
       <FilesToCopy Include="$(DeployDir)/*.*" />
@@ -278,7 +296,7 @@
     <RemoveDir Directories="$(DeployDir)" />
     <Message Importance="high" Text="Moved to $(ContentPath)" />
   </Target>
-  <Target Name="CustomClean" BeforeTargets="CoreClean">
+  <Target Name="CustomClean" BeforeTargets="CoreClean" Condition="'$(_ANRLegacy)' == 'true' and '$(_ANRCI)' != 'true' and '$(DesignTimeBuild)' != 'true'">
     <RemoveDir Directories="$(TargetDir)" />
     <PropertyGroup>
       <!-- match DeployToModDirectory logic for platform-specific path -->
@@ -287,5 +305,8 @@
     </PropertyGroup>
     <Message Text="removing deploy directory" Importance="high" />
     <RemoveDir Directories="$(DeployDir)" />
+  </Target>
+  <Target Name="ANRRejectUnsupportedConfiguration" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(_ANRManaged)' != 'true' and '$(_ANRLegacy)' != 'true'" Text="ANR: select Debug, ALPHA or STABLE; Release/Workshop/FAST_TEST_PATCHES are legacy." />
   </Target>
 </Project>
