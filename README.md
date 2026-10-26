@@ -1,37 +1,57 @@
-# Adaptive Networks 4.0.5.0 — Cities: Skylines 1
+# Adaptive Networks Remain
 
-### Project Goal
+**Cities: Skylines 1 — Race Day (1.21.1)**
 
-The goal of this project is to properly port **Adaptive Networks** to the current Cities: Skylines 1 game version (1.21.1, Race Day update), restoring its original functionality while preserving compatibility with existing networks and saved games.
+**Adaptive Networks Remain (ANR)** continues Adaptive Networks development, aiming to restore pre-Race Day functionality while preserving existing networks and saved games.
 
-**The objective is to preserve the original behavior, not simply make the mod compile.**
+Based on [TheMadisonian's Adaptive Networks](https://github.com/TheMadisonian/AdaptiveNetworks), building on the work of [Kian](https://github.com/kianzarrin/AdaptiveNetworks), [T.D.W.](https://github.com/JadHajjar/AdaptiveNetworks), and [Chamëleon TBN](https://steamcommunity.com/sharedfiles/filedetails/?id=2669938594).
 
-This project is forked from [TheMadisonian's Adaptive Networks](https://github.com/TheMadisonian/AdaptiveNetworks), while also building upon the original work of [Kian (kianzarrin)](https://github.com/kianzarrin/AdaptiveNetworks) and subsequent development by [T.D.W. (JadHajjar)](https://github.com/JadHajjar/AdaptiveNetworks).
+## Current status: (Experimental)
 
-### Current Progress
+### Implemented / initially tested
 
-**Completed / Initially Tested**
+- Initial Race Day API migration, including `DynamicFlags<NetInfo>` and `Flags2` handling.
+- Basic segment/node flags — initially tested.
+- `TagBase.Check()` / `CheckOrNone()` — fixed custom ConnectGroup matching *(ie. Porthal North Bridge* Bend/Custom *nodes).*
+- TM:PE and Network Skins Continued — initial integration and save/load tests.
 
-- Updated the codebase for the Race Day API changes, including the new flag system.
-- Basic segment and node flags are now working.
-- Corrected shared ConnectGroup recognition to prevent unintended meshes from appearing on Custom and Bend nodes.
-- Initial integration with TM:PE and Network Skins Continued, save/load compatibility tests passed.
+### In testing/development
 
-**Still Requires Testing**
+- Advanced flags, Direct Connect, Bend and segment orientation.
+- Harmony patches and network rendering.
+- TM:PE parking flags.
+- Network Skins Continued integration.
+- Asset Editor compatibility.
 
-- Advanced flags, including Direct Connect and Bend node behavior.
-- Parking flags and segment direction handling.
-- Full Network Skins integration, including flag selection and copying.
-- Compatibility and regression testing with other network-related mods.
+### Planned
 
-### Planned Work
+- Road Builder integration.
+- Further compatibility and regression testing.
 
-- **Asset Editor compatibility** — not yet implemented or verified.
-- **Road Builder integration** — still to be developed and tested.
-- Further testing and restoration of advanced Adaptive Networks functionality.
+## Builds
 
-### Status
+### GitHub branches
 
-**Work in progress — experimental development build.**
+- **[`master`](https://github.com/SirSheikhsPears/AdaptiveNetworks/tree/master)** — **ANR Alpha** source code intended for the Steam Workshop **ANR Alpha** release.
+- **[`test-builds`](https://github.com/SirSheikhsPears/AdaptiveNetworks/tree/test-builds)** — experimental **ANR Alpha** builds for GitHub testers, with corresponding source history.
 
-This is an ongoing effort to restore the full functionality of Adaptive Networks for Race Day patch
+*After the first ANR Stable Workshop release, `master` will track Stable sources, a separate `Alpha` source branch will be introduced, and `test-builds` will remain the Alpha test-build distribution branch.*
+
+### Available builds
+
+- **4.0.5.9 (Debug)** — [experimental install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.sha256)), published October 26, 2026. Contains a versioned mod folder for `Addons\Mods`.
+- **4.0.5.0-TEST** — [experimental test ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/AdaptiveNetworks-4.0.5.0-TEST.zip), published October 8, 2026.
+- **ANR Alpha** — not published.
+- **ANR Stable** — will be available after ANR Alpha passed all compatibility tests with current Race Day **(1.21.1)** patch.
+
+## Compatibility
+
+- **TM:PE:** required by the current implementation.
+- **Network Skins Continued:** integration available (full regression testing ongoing)
+- Do not enable competing Adaptive Networks variants simultaneously.
+
+## Changes
+
+See [CHANGELOG.md](CHANGELOG.md) for source changes and release history.
+
+**Full Race Day compatibility verification is still in progress.**
