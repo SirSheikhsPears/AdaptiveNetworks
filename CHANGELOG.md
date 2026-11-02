@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.5.40 — 2026-11-02 (Debug)
+
+- [`8249739`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/8249739b5a1265e4ec8c05d6c774ababe85ac2ca) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.sha256): 12 files + `BUILD_INFO.md` in a versioned folder; Debug, `clean` source: ANR [`a5fe0f9`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a5fe0f9c4ee4794a876b9f4f42ac85a32eed7538), KianCommons [`bc9071b`](https://github.com/SirSheikhsPears/KianCommons/commit/bc9071bcb5c097fb7c3ddad653da70dd882820e2).
+- [`20a6958`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/20a6958a03c3843197303155121dbfb2b1c25de6) — `ConflictGuard.RequestEnable()` / `RequestDisable()`, `ConflictGuardDependency.Inspect()`, `ConflictGuardNotice` / `ConflictGuardText`: AN conflict detection, TM:PE dependency checks, guarded initialization, modal warnings and native/Skyve AutoLoad control.
+- [`a5fe0f9`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a5fe0f9c4ee4794a876b9f4f42ac85a32eed7538) — `InactiveNoticeBootstrap.TrySchedule()`, `InactiveNoticeGate.Update()`, `InactiveNotice.TryOpen()`: disabled ANR detection, startup UI readiness, modal notification and Direct Load integration.
+
 ## 4.0.5.9 — 2026-10-26 (experimental Debug)
 
 - [`15a82ab`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/15a82ab5848e8b4e6b14fda1baabdff8449be13b) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.sha256): 12 files in a versioned folder; Debug, `clean` source: ANR [`3fc78f1`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/3fc78f1c9f59f053b74941cf3fae15d5ef9fdae6), KianCommons [`bc9071b`](https://github.com/SirSheikhsPears/KianCommons/commit/bc9071bcb5c097fb7c3ddad653da70dd882820e2).
