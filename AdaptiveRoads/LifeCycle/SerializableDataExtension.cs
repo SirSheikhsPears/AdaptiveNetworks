@@ -16,6 +16,7 @@ namespace AdaptiveRoads.LifeCycle
 
         public override void OnLoadData()
         {
+            if (!ConflictGuard.CanRun) return;
             try {
                 Log.Info("SerializableDataExtension.OnLoadData() ...", true);
                 byte[] data = serializableDataManager.LoadData(DATA_ID);
@@ -34,6 +35,7 @@ namespace AdaptiveRoads.LifeCycle
 
         public override void OnSaveData()
         {
+            if (!ConflictGuard.CanRun) return;
             try {
                 Log.Info("OnSaveData() ...", true);
                 var man = NetworkExtensionManager.Instance;

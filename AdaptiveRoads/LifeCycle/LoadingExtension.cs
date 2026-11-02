@@ -15,6 +15,7 @@ namespace AdaptiveRoads.LifeCycle
 
         public override void OnLevelUnloading()
         {
+            if (!ConflictGuard.CanCleanup) return;
             Log.Debug("LoadingExtention.OnLevelUnloading");
             LifeCycle.Unload();
         }

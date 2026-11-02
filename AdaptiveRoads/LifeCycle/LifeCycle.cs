@@ -31,8 +31,11 @@ namespace AdaptiveRoads.LifeCycle {
         public static string Scene => SceneManager.GetActiveScene().name;
 
         public static bool bHotReload = false;
+        // Separate from Guard admission and Enable/NSC registration; true only after Load succeeds.
+        internal static bool LevelReady { get; private set; }
 
         public static void Enable() {
+            if (!ConflictGuard.CanRun) return;
             try {
 #if DEBUG
                 Log.Debug("Testing StackTrace:\n" + new StackTrace(true).ToString(), copyToGameLog: false);
@@ -60,6 +63,7 @@ namespace AdaptiveRoads.LifeCycle {
                 });
 #endif
                 //Test();
+                ConflictGuard.MarkBootstrapCompleted();
             } catch (Exception ex) {
                 Log.Exception(ex);
             }
@@ -90,6 +94,7 @@ namespace AdaptiveRoads.LifeCycle {
 #endif
 
         public static void HotReload3rdparty() {
+            if (!ConflictGuard.CanRun) return;
             if (loaded_) {
                 // check for loaded_ to avoid detecting AN hotreload as 3rdparty hotreload.
                 Log.Called();
@@ -105,6 +110,7 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         public static void HotReload() {
+            if (!ConflictGuard.CanRun) return;
             LogCalled();
             bHotReload = true;
             Preload();
@@ -116,6 +122,8 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         public static void Disable() {
+            if (!ConflictGuard.CanCleanup) return;
+            LevelReady = false;
             Log.Buffered = false;
             ANImplementation.Uninstall();
 
@@ -130,6 +138,7 @@ namespace AdaptiveRoads.LifeCycle {
 
         static bool preloadPatchesApplied_ = false;
         public static void Preload() {
+            if (!ConflictGuard.CanRun) return;
             try {
                 Log.Info("LifeCycle.Preload() called");
                 PluginUtil.LogPlugins();
@@ -148,6 +157,7 @@ namespace AdaptiveRoads.LifeCycle {
         static bool tmpeLoaded_ = false;
         static bool loaded_ = false;
         public static void OnTMPELoaded() {
+            if (!ConflictGuard.CanRun) return;
             tmpeLoaded_ = true;
             if (loaded_) {
                 // if TMPE was loaded last, then update everything here.
@@ -156,6 +166,8 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         public static void Load() {
+            if (!ConflictGuard.CanRun) return;
+            LevelReady = false;
             try {
                 Log.Info("LifeCycle.Load() called");
                 Log.Debug("testing stack trace:\n" + Environment.StackTrace, false);
@@ -196,12 +208,15 @@ namespace AdaptiveRoads.LifeCycle {
 
                 Log.Flush();
                 Log.Succeeded();
+                LevelReady = true;
             } catch (Exception ex) {
                 Log.Exception(ex);
             }
         }
 
         public static void Unload() {
+            if (!ConflictGuard.CanCleanup) return;
+            LevelReady = false;
             try {
                 LogCalled();
                 loaded_ = tmpeLoaded_ = false;
@@ -221,6 +236,8 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         public static void Exit() {
+            if (!ConflictGuard.CanCleanup) return;
+            LevelReady = false;
             Log.Buffered = false;
             Log.Info("LifeCycle.Exit() called");
             PluginManager.instance.eventPluginsStateChanged -= HotReload3rdparty;
