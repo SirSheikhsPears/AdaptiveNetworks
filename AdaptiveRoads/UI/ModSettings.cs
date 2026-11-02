@@ -17,6 +17,7 @@ using AdaptiveRoads.UI.VBSTool;
 namespace AdaptiveRoads.UI {
     public static class ModSettings {
         public const string FILE_NAME = nameof(AdaptiveRoads);
+        private static bool CanUseLevel => LifeCycle.ConflictGuard.CanRun && LifeCycle.LifeCycle.LevelReady;
         public static SavedBool SavedBool(string key, bool def) => new SavedBool(key, FILE_NAME, def, true);
         public static SavedInt SavedInt(string key, int def) => new SavedInt(key, FILE_NAME, def, true);
         public static SavedFloat SavedFloat(string key, float def) => new SavedFloat(key, FILE_NAME, def, true);
@@ -89,7 +90,7 @@ namespace AdaptiveRoads.UI {
             return helper.AddCheckbox(label, savedBool, delegate (bool value) {
                 savedBool.value = value;
                 Log.Debug($"option {label} is set to " + value);
-                RoadEditorUtils.RefreshRoadEditor();
+                if (CanUseLevel) RoadEditorUtils.RefreshRoadEditor();
             }) as UICheckBox;
             Log.Debug($"option {label} is set to " + savedBool.value);
         }
@@ -119,7 +120,7 @@ namespace AdaptiveRoads.UI {
                 var keymappingsPanel = general.AddKeymappingsPanel();
                 keymappingsPanel.AddKeymapping("Hotkey", Hotkey);
 
-                if (inAssetEditor || Helpers.InStartupMenu) {
+                if ((inAssetEditor && CanUseLevel) || Helpers.InStartupMenu) {
                     keymappingsPanel.AddKeymapping("VBS Hotkey", VBSHotkey);
 
                     VanillaModeToggle = general.AddCheckbox("Vanilla mode", !ARMode, delegate (bool vanillaMode) {
@@ -139,7 +140,7 @@ namespace AdaptiveRoads.UI {
                         if (WireScaleComponent != null) {
                             WireScaleComponent.parent.isVisible = val;
                         }
-                        if (!Helpers.InStartupMenu) {
+                        if (CanUseLevel && !Helpers.InStartupMenu) {
                             RoadUtils.SetupThinWires(force: true);
                         }
                     }).tooltip = "applies to all networks (not only AN networks)";
@@ -148,13 +149,13 @@ namespace AdaptiveRoads.UI {
                         tooltip: val => "1/" + val,
                         savedFloat: WireScale,
                         min: 1, max: 10, step: 0.1f,
-                        () => RoadUtils.SetupThinWires(force: true));
+                        () => { if (CanUseLevel) RoadUtils.SetupThinWires(force: true); });
                     WireScaleComponent.parent.isVisible = ThinWires.value;
                 }
 
-                if (!Helpers.InStartupMenu) {
-                    var toggle = general.AddCheckbox("Left Hand Traffic", NetUtil.LHT, RoadUtils.SetDirection) as UICheckBox;
-                    toggle.eventVisibilityChanged += (_, __) => toggle.isChecked = NetUtil.LHT;
+                if (CanUseLevel && !Helpers.InStartupMenu) {
+                    var toggle = general.AddCheckbox("Left Hand Traffic", NetUtil.LHT, value => { if (CanUseLevel) RoadUtils.SetDirection(value); }) as UICheckBox;
+                    toggle.eventVisibilityChanged += (_, __) => { if (CanUseLevel) toggle.isChecked = NetUtil.LHT; };
                 }
                 
 
@@ -167,16 +168,16 @@ namespace AdaptiveRoads.UI {
                             var value = GetEnumValues<SpeedUnitType>()[sel];
                             SpeedUnit.value = (int)value;
                             Log.Debug("option 'preferred speed unit' is set to " + value);
-                            RoadEditorUtils.RefreshRoadEditor();
+                            if (CanUseLevel) RoadEditorUtils.RefreshRoadEditor();
                         });
 
                     general.AddSavedToggle("hide irrelevant flags", HideIrrelavant);
                     general.AddSavedToggle("hide floating hint box", HideHints);
                 }
 
-                if (!Helpers.InStartupMenu) {
+                if (CanUseLevel && !Helpers.InStartupMenu) {
 #if DEBUG
-                    general.AddButton("Rebuild lods", () => NetManager.instance.RebuildLods());
+                    general.AddButton("Rebuild lods", () => { if (CanUseLevel) NetManager.instance.RebuildLods(); });
 #endif
                     general.AddButton("Refresh AN networks", RefreshARNetworks);
                 }
@@ -205,6 +206,7 @@ namespace AdaptiveRoads.UI {
         }
 
         public static void OnConfimRemoveARdata() {
+            if (!Helpers.InStartupMenu && !CanUseLevel) return;
             if (Helpers.InStartupMenu) {
                 OnRefreshARMode();
                 return;
@@ -227,6 +229,7 @@ namespace AdaptiveRoads.UI {
         }
 
         public static void OnRefreshARMode() {
+            if (!Helpers.InStartupMenu && !CanUseLevel) return;
             ARMode.value = !VanillaModeToggle.isChecked;
             Log.Debug($"Vanilla Mode toggle =  {VanillaModeToggle.isChecked}. ARMode = {ARMode.value}");
 
@@ -236,8 +239,9 @@ namespace AdaptiveRoads.UI {
             RoadEditorUtils.RefreshRoadEditor();
         }
 
-        public static void RefreshARNetworks() =>
-            NetworkExtensionManager.RawInstance?.UpdateAllNetworkFlags();
+        public static void RefreshARNetworks() {
+            if (CanUseLevel) NetworkExtensionManager.RawInstance?.UpdateAllNetworkFlags();
+        }
         
     }
 }

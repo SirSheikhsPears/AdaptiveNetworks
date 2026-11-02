@@ -20,13 +20,17 @@ namespace AdaptiveRoads.LifeCycle {
             : BuildConfiguration == "Debug" || BuildConfiguration == "ALPHA"
                 ? "Adaptive Networks Remain Alpha " + VersionString
                 : "Adaptive Networks " + ModVersion.ToString(2);
+        internal static string GuardShortName => BuildConfiguration == "STABLE" ? "ANR"
+            : BuildConfiguration == "Debug" || BuildConfiguration == "ALPHA" ? "ANR Alpha" : "Adaptive Networks";
+        internal static string GuardFullName => BuildConfiguration == "STABLE" ? "Adaptive Networks Remain"
+            : BuildConfiguration == "Debug" || BuildConfiguration == "ALPHA" ? "Adaptive Networks Remain Alpha" : "Adaptive Networks";
         public string Description => "foundation for networks with extra flexibility and variability.";
 
         [UsedImplicitly]
-        public void OnEnabled() => LifeCycle.Enable();
+        public void OnEnabled() => ConflictGuard.RequestEnable(this);
 
         [UsedImplicitly]
-        public void OnDisabled() => LifeCycle.Disable();
+        public void OnDisabled() => ConflictGuard.RequestDisable();
 
         [UsedImplicitly]
         public void OnSettingsUI(UIHelperBase helper) {

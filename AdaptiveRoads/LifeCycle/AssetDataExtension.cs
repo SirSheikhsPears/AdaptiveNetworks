@@ -31,6 +31,7 @@ namespace AdaptiveRoads.LifeCycle {
 
         public static void OnAssetLoadedImpl(string name, object asset, Dictionary<string, byte[]> userData) {
             try {
+                if (!ConflictGuard.CanRun) return;
                 if(HelpersExtensions.InAssetEditor && ModSettings.VanillaMode)
                     return;
                 Log.Debug($"AssetDataExtension.OnAssetLoadedImpl({name}, {asset}, userData) called", false);
@@ -58,7 +59,9 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         public static void OnAssetSavedImpl(string name, object asset, out Dictionary<string, byte[]> userData) {
+            userData = null;
             try {
+                if (!ConflictGuard.CanRun) return;
                 if(Log.VERBOSE) Log.Called(name, asset, "userData");
                 userData = null;
                 if (ModSettings.VanillaMode) {
@@ -125,6 +128,7 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         public static void HotReload() {
+            if (!ConflictGuard.CanRun) return;
             try {
                 LogCalled();
                 var prefabs2UserData = PluginUtil.GetLoadOrderMod()

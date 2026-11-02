@@ -19,6 +19,7 @@ namespace AdaptiveRoads.NSInterface {
         public override int Index { get; set; }
 
         public override void OnSkinApplied(ICloneable data, InstanceID instanceID) {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called(data, instanceID);
                 if (instanceID.Type == InstanceType.NetSegment) {
@@ -57,11 +58,13 @@ namespace AdaptiveRoads.NSInterface {
         #region persistency
         public override Version DataVersion => this.VersionOf();
         public override string Encode64(ICloneable data) {
+            if (!LifeCycle.ConflictGuard.CanRun) return null;
             Log.Called();
             return data is ARCustomFlags customData ? XMLSerializerUtil.Serialize(customData) : null;
         }
 
         public override ICloneable Decode64(string base64Data, Version dataVersion) {
+            if (!LifeCycle.ConflictGuard.CanRun) return null;
             Log.Called();
             return base64Data != null ? XMLSerializerUtil.Deserialize<ARCustomFlags>(base64Data) : null;
         }
@@ -81,6 +84,7 @@ namespace AdaptiveRoads.NSInterface {
         UIPanel container_;
         UIPanel subContainer_;
         public override void BuildPanel(UIPanel panel) {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called();
                 if(!Enabled) return;
@@ -93,6 +97,7 @@ namespace AdaptiveRoads.NSInterface {
         }
 
         public override void RefreshUI() {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called();
                 if(!Enabled) return;
@@ -120,9 +125,10 @@ namespace AdaptiveRoads.NSInterface {
 
         public bool IsDefault => (ARCustomFlags != null && ARCustomFlags.IsDefault()).LogRet();
 
-        public override bool Enabled => (!SharedCustomFlags.IsDefault()).LogRet();
+        public override bool Enabled => LifeCycle.ConflictGuard.CanRun && (!SharedCustomFlags.IsDefault()).LogRet();
 
         public override void LoadWithData(ICloneable data) {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called();
                 if(data is ARCustomFlags customData) {
@@ -135,6 +141,7 @@ namespace AdaptiveRoads.NSInterface {
         }
 
         public override void LoadActiveSelection() {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called();
                 ARCustomFlags = new ARCustomFlags(BasePrefab.m_lanes.Length);
@@ -156,6 +163,7 @@ namespace AdaptiveRoads.NSInterface {
         }
 
         public override void SaveActiveSelection() {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called();
                 foreach (var elevation in BasePrefab.AllElevations()) {
@@ -177,6 +185,7 @@ namespace AdaptiveRoads.NSInterface {
         }
 
         public override void Reset() {
+            if (!LifeCycle.ConflictGuard.CanRun) return;
             try {
                 Log.Called();
                 ARCustomFlags = new ARCustomFlags(BasePrefab.m_lanes.Length);
@@ -184,9 +193,10 @@ namespace AdaptiveRoads.NSInterface {
             Log.Succeeded();
         }
 
-        public void Change() => this.OnControllerChanged();
+        public void Change() { if (LifeCycle.ConflictGuard.CanRun) this.OnControllerChanged(); }
 
         public override Dictionary<NetInfo, ICloneable> BuildCustomData() {
+            if (!LifeCycle.ConflictGuard.CanRun) return null;
             try {
                 Log.Called("CustomSegmentFlags are " + ARCustomFlags.Segment);
                 var ret = new Dictionary<NetInfo, ICloneable>();

@@ -7,6 +7,7 @@ using System.Diagnostics;
 namespace AdaptiveRoads.LifeCycle {
     public class ThreadingExtensions : ThreadingExtensionBase {
         public override void OnAfterSimulationTick() {
+            if (!ConflictGuard.CanRun) return;
             base.OnBeforeSimulationTick();
             NetworkExtensionManager.Instance.SimulationStep();
         }
