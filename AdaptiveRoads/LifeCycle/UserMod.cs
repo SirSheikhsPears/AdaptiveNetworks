@@ -4,6 +4,9 @@ namespace AdaptiveRoads.LifeCycle {
     using System;
 
     public class UserMod : IUserMod {
+        public UserMod() {
+            InactiveNoticeBootstrap.TrySchedule(this);
+        }
         public static Version ModVersion => typeof(UserMod).Assembly.GetName().Version;
         public static string VersionString => ModVersion.ToString(4);
         private static string BuildConfiguration {
