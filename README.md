@@ -39,6 +39,7 @@ Based on [TheMadisonian's Adaptive Networks](https://github.com/TheMadisonian/Ad
 
 ### Available builds
 
+- **4.0.5.40 (Debug)** — [experimental install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.sha256)), published November 2, 2026. Contains a versioned mod folder for `Addons\Mods`.
 - **4.0.5.9 (Debug)** — [experimental install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.sha256)), published October 26, 2026. Contains a versioned mod folder for `Addons\Mods`.
 - **4.0.5.0-TEST** — [experimental test ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/AdaptiveNetworks-4.0.5.0-TEST.zip), published October 8, 2026.
 - **ANR Alpha** — not published.
