@@ -34,7 +34,12 @@ def version(value):
 def package_name(channel, value):
     version(value)
     require(channel in ('Alpha', 'Stable'), 'Invalid channel')
-    return ('ANR_A-' if channel == 'Alpha' else 'ANR-') + value + '.zip'
+    return ('ANR_A-' if channel == 'Alpha' else 'ANR-') + value + '-INSTALL.zip'
+
+def package_folder(channel, value):
+    version(value)
+    require(channel in ('Alpha', 'Stable'), 'Invalid channel')
+    return ('ANR Alpha ' if channel == 'Alpha' else 'ANR ') + value
 
 def managed_metadata(data):
     """Read ECMA-335 Assembly table and simple assembly string attributes; no CLR load."""
@@ -151,6 +156,8 @@ def managed_metadata(data):
 
 def validate_zip(data, sidecar, expected, channel, value, source_commit, public=True):
     name=package_name(channel,value)
+    folder=package_folder(channel,value)
+    prefix=folder+'/'
     require(SHA.fullmatch(expected) is not None and sha(data)==expected, 'ZIP SHA-256 mismatch')
     require(sidecar.decode('ascii').strip() == expected+'  '+name, 'Invalid external SHA-256 file')
     require(len(data) <= 25*1024*1024, 'Package exceeds proposed 25 MiB transport limit')
@@ -159,15 +166,20 @@ def validate_zip(data, sidecar, expected, channel, value, source_commit, public=
         require(len(names)==len(set(n.casefold() for n in names)), 'Duplicate/case-colliding ZIP names')
         require(len(names)<=20 and sum(i.file_size for i in infos)<=100*1024*1024, 'ZIP size limit')
         allowed=BASE_FILES|{'AdaptiveRoads.dll.mdb','BUILD_INFO.md'}
-        require(set(names) <= allowed and BASE_FILES|{'BUILD_INFO.md'} <= set(names), 'Unexpected/missing payload')
+        require(all(n.startswith(prefix) and n[len(prefix):] and
+                    '/' not in n[len(prefix):] for n in names),
+                'Invalid ZIP folder structure')
+        members={n[len(prefix):]:n for n in names}
+        require(set(members) <= allowed and BASE_FILES|{'BUILD_INFO.md'} <= set(members),
+                'Unexpected/missing payload')
         for i in infos:
             require(not i.is_dir() and not i.flag_bits&1 and not stat.S_ISLNK(i.external_attr>>16), 'Unsafe ZIP entry')
-        manifest=z.read('BUILD_INFO.md').decode('utf-8')
+        manifest=z.read(members['BUILD_INFO.md']).decode('utf-8')
         blocks=re.findall(r'```json\n(.*?)\n```',manifest,re.S)
         require(len(blocks)==1, 'BUILD_INFO.md requires one JSON block')
         m=json.loads(blocks[0])
         require(m['schema']==1 and m['version']==value and m['channel']==channel, 'Manifest identity mismatch')
-        require(m['configuration']==('ALPHA' if channel=='Alpha' else 'STABLE'), 'Wrong release configuration')
+        require(m['configuration'] in (('Debug','ALPHA') if channel=='Alpha' else ('STABLE',)), 'Wrong release configuration')
         require(m['name']==('Adaptive Networks Remain Alpha' if channel=='Alpha' else 'Adaptive Networks Remain'), 'Wrong mod name')
         require(m['source_commit']==source_commit and COMMIT.fullmatch(source_commit), 'Source commit mismatch')
         require(COMMIT.fullmatch(m['kiancommons_commit']) and m['kiancommons_repository']==KC_REPO, 'KianCommons provenance mismatch')
@@ -182,11 +194,11 @@ def validate_zip(data, sidecar, expected, channel, value, source_commit, public=
             require(re.fullmatch(r'[A-Za-z0-9_.-]+\.dll',g['file']) and SHA.fullmatch(g['sha256']), 'Invalid game evidence')
         payload=m['payload']; require(isinstance(payload,list), 'Missing payload inventory')
         require(len(payload)==len({p['file'] for p in payload}), 'Duplicate payload entries')
-        require({p['file'] for p in payload}==set(names)-{'BUILD_INFO.md'}, 'Payload inventory mismatch')
+        require({p['file'] for p in payload}==set(members)-{'BUILD_INFO.md'}, 'Payload inventory mismatch')
         for p in payload:
-            b=z.read(p['file'])
+            b=z.read(members[p['file']])
             require(p['sha256']==sha(b) and p['bytes']==len(b), 'Payload hash/size mismatch')
-        dll=z.read('AdaptiveRoads.dll'); md=managed_metadata(dll)
+        dll=z.read(members['AdaptiveRoads.dll']); md=managed_metadata(dll)
         require(md['name']=='AdaptiveRoads', 'Wrong assembly name')
         require(all(md.get(k)==value for k in ('assembly','file','informational')), 'DLL version mismatch')
         require(md.get('configuration')==m['configuration'], 'DLL configuration mismatch')
