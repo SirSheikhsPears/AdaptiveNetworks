@@ -70,7 +70,7 @@ namespace AdaptiveRoads.Patches.Node.AntiFlickering {
             CodeInstruction loadDataMatrix2 = codes[iLoadDataMatrix2];
             CodeInstruction loadNodeInfo = codes[iLoadNodeInfo];
             CodeInstruction loadNodeID = GetLDArg(method, "nodeID");
-            CodeInstruction loadRefData = new CodeInstruction(OpCodes.Ldarga, TranspilerUtils.GetArgLoc(method, "data"));
+            CodeInstruction loadRefData = GetLDArg(method, "data");
 
             codes.InsertInstructions(iLoadDataMatrix0 + 1, new CodeInstruction[]{
                 new CodeInstruction(OpCodes.Ldc_I4_0),
