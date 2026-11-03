@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.0.5.43 — 2026-11-03 (Debug)
+
+- [`42caf37`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/42caf37dff68114bc323a0e7dca0b6cf78fe21e0) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.sha256): Debug, `clean` sources; ANR [`cdc4840`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/cdc48409a20e0a86b556c4670a496b3b0b3fcd0f), KianCommons [`9edb716`](https://github.com/SirSheikhsPears/KianCommons/commit/9edb71664bfc333cd6aecca6f503d187e58b58ea).
+- [`c9047a4`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/c9047a4bb8ea3fcd6e4ae1f0f48b86989aba677a) — `RefreshJunctionDataPatch.cs` -  replaced `Ldarga` with `GetLDArg(method, "data")`.
+-  [`d8754b0`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/d8754b038442e68a50b3a123ddf0f17d059f7437) / KianCommons [`9edb716`](https://github.com/SirSheikhsPears/KianCommons/commit/9edb71664bfc333cd6aecca6f503d187e58b58ea) — `GetPlugin()`: `HideCrosswalksRenewed` and `HideUnconnectedTracksRenewed` with `AssemblyEquals` - updated assembly detection; removed obsolete `HideCrosswalksPatch.cs`.
+- [`cdc4840`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/cdc48409a20e0a86b556c4670a496b3b0b3fcd0f) — deploy changes.
+
 ## 4.0.5.40 — 2026-11-02 (Debug)
 
 - [`8249739`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/8249739b5a1265e4ec8c05d6c774ababe85ac2ca) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.sha256): 12 files + `BUILD_INFO.md` in a versioned folder; Debug, `clean` source: ANR [`a5fe0f9`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a5fe0f9c4ee4794a876b9f4f42ac85a32eed7538), KianCommons [`bc9071b`](https://github.com/SirSheikhsPears/KianCommons/commit/bc9071bcb5c097fb7c3ddad653da70dd882820e2).
