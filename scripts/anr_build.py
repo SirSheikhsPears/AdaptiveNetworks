@@ -76,7 +76,7 @@ def check_release(package):
     for item in m['payload']:
         require(sha((package/'Content'/item['file']).read_bytes())==item['sha256'],'Archive Content differs from ZIP')
     with zipfile.ZipFile(package/'GITHUB'/name) as z:
-        require(z.read('BUILD_INFO.md')==(package/'Content/BUILD_INFO.md').read_bytes(),'Archive manifest differs')
+        require(z.read(package_folder(receipt['channel'],receipt['version'])+'/BUILD_INFO.md')==(package/'Content/BUILD_INFO.md').read_bytes(),'Archive manifest differs')
     require({p.name for p in (package/'Content').iterdir()}=={p['file'] for p in m['payload']}|{'BUILD_INFO.md'},'Unexpected Content files')
     if receipt.get('preview_sha256'):
         require(sha((package/'PreviewImage.png').read_bytes())==receipt['preview_sha256'],'Archive preview differs')
@@ -105,6 +105,46 @@ def archive(package, destination):
         temp.rmdir()
     except Exception:
         raise ValueError('Archive incomplete; preserve pending and version directories for manual recovery')
+
+def export_install(package):
+    local_only()
+    package=Path(package)
+    receipt,name=check_release(package)
+
+    base=Path(r'R:\ADVANCED Networks\REMAIN\GITHUB-STEAM\GIT-HUB')
+    require(base.is_dir() and not base.is_symlink(),
+            'Install export root missing or unsafe')
+
+    folder=('ANR_A-' if receipt['channel']=='Alpha' else 'ANR-')+receipt['version']
+    destination=base/folder
+    source=package/'GITHUB'
+    filenames=(name,name.replace('.zip','.sha256'))
+
+    if destination.exists():
+        require(destination.is_dir() and not destination.is_symlink(),
+                'Unsafe existing install export folder')
+        for filename in filenames:
+            target=destination/filename
+            require(target.is_file() and not target.is_symlink() and
+                    sha(target.read_bytes())==sha((source/filename).read_bytes()),
+                    'Existing install export differs: '+filename)
+    else:
+        pending=base/('.ANR-install-pending-'+uuid.uuid4().hex)
+        pending.mkdir()
+        try:
+            for filename in filenames:
+                shutil.copyfile(source/filename,pending/filename)
+                require(sha((pending/filename).read_bytes())==sha((source/filename).read_bytes()),
+                        'Install export copy mismatch: '+filename)
+            require(not destination.exists(),
+                    'Install export destination already exists')
+            pending.rename(destination)
+        finally:
+            if pending.exists():
+                shutil.rmtree(pending)
+
+    print('Verified install export:',destination)
+
 def deploy_and_zip(package, deploy, enabled_deploy=True, enabled_zip=True):
     local_only()
     mods=safe_root(deploy).parent
@@ -162,16 +202,19 @@ def _deploy_and_zip(package, deploy, enabled_deploy=True, enabled_zip=True):
         # Only remove old ZIPs in the actual default Addons/Mods root, and only if recorded by this script.
         history=mods/('.anr-alpha-zip.json' if channel=='Alpha' else '.anr-stable-zip.json')
         previous=read(history) if history.is_file() else None
-        dump(history,{'file':name,'sha256':digest})
+        old_to_remove=None
         if previous and mods.resolve()==default_mods().resolve():
-            pattern=r'ANR_A-4\.\d+\.\d+\.\d+\.zip' if channel=='Alpha' else r'ANR-4\.\d+\.\d+\.\d+\.zip'
+            pattern=r'ANR_A-4\.\d+\.\d+\.\d+(?:-INSTALL)?\.zip' if channel=='Alpha' else r'ANR-4\.\d+\.\d+\.\d+(?:-INSTALL)?\.zip'
             oldname=previous['file']
             require(re.fullmatch(pattern,oldname),'Invalid old ZIP journal')
             old=mods/oldname
-            if oldname!=name and old.exists() and '4.0.5.0' not in oldname:
+            if oldname!=name and old.exists() and '4.0.5.0' not in oldname and '4.0.5.40' not in oldname:
                 require(old.is_file() and not old.is_symlink() and sha(old.read_bytes())==previous['sha256'],
                         'Old ZIP changed outside ANR; kept for review')
-                old.unlink()
+                old_to_remove=old
+        dump(history,{'file':name,'sha256':digest})
+        if old_to_remove is not None:
+            old_to_remove.unlink()
 
 def finish(args, repo, obj):
     local_only(); locked(repo,args.token)
@@ -208,21 +251,19 @@ def finish(args, repo, obj):
        'source_state':compiled['snapshot']['source_state'],'build_utc':compiled['build_utc'],
        'toolchain':args.toolchain,'game_assemblies':compiled['game_assemblies'],
        'dll_sha256':compiled['dll_sha256'],'payload':payload}
-    if release:
-        (content/'BUILD_INFO.md').write_text('# '+m['name']+' '+value+'\n\n'
-             'Paczkę przygotowano po kompilacji. Wynik testów gry właściciel zatwierdza osobno.\n\n'
-             '```json\n'+json.dumps(m,indent=2,ensure_ascii=False)+'\n```\n',encoding='utf-8',newline='\n')
+    (content/'BUILD_INFO.md').write_text(
+        '# '+m['name']+' '+value+'\n\n'
+        'Paczkę przygotowano po kompilacji. Wynik testów gry właściciel zatwierdza osobno.\n\n'
+        '```json\n'+json.dumps(m,indent=2,ensure_ascii=False)+'\n```\n',
+        encoding='utf-8',newline='\n')
     gh=pending/'GITHUB'; gh.mkdir(); name=package_name(channel,value)
     with zipfile.ZipFile(gh/name,'x',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
-        for p in sorted(content.iterdir()): z.write(p,p.name)
+        for p in sorted(content.iterdir()): z.write(p,package_folder(channel,value)+'/'+p.name)
     b=(gh/name).read_bytes(); side=sha(b)+'  '+name+'\n'
     (gh/name.replace('.zip','.sha256')).write_text(side,encoding='ascii',newline='\n')
-    if release: validate_zip(b,side.encode(),sha(b),channel,value,m['source_commit'],public=False)
-    else:
-        with zipfile.ZipFile(gh/name) as z:
-            require(z.testzip() is None,'Debug ZIP CRC failure')
-            require(set(z.namelist())=={p['file'] for p in payload},'Debug payload mismatch')
-            require(all(sha(z.read(p['file']))==p['sha256'] for p in payload),'Debug payload hash mismatch')
+    with zipfile.ZipFile(gh/name) as z:
+        require(z.testzip() is None,'ZIP CRC failure')
+    validate_zip(b,side.encode('ascii'),sha(b),channel,value,m['source_commit'],public=False)
     receipt={**compiled,**m,'zip_sha256':sha(b)}
     if a_preview:=args.approved_preview:
         preview=Path(a_preview).read_bytes()
@@ -236,6 +277,7 @@ def finish(args, repo, obj):
         archive(dest,args.archive_root)
     deploy=args.deploy_dir or str(default_mods()/m['name'])
     deploy_and_zip(dest,deploy,args.deploy_enabled=='true',args.zip_enabled=='true')
+    export_install(dest)
     print('Prepared verified package:',dest)
 
 def main():
