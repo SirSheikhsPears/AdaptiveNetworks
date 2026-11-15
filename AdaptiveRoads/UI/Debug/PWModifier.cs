@@ -23,14 +23,18 @@ namespace AdaptiveRoads.UI.Debug {
         [Conditional("DEBUG")]
         public static void Create() => UIView.GetAView().AddUIComponent<PWModifier>();
         [Conditional("DEBUG")]
-        public static void Release() =>
-            DestroyImmediate(UIView.GetAView().FindUIComponent<PWSelector>(nameof(PWModifier))?.gameObject);
+        public static void Release() {
+            var view = UIView.GetAView();
+            if (!view) return;
+            var panel = view.FindUIComponent<PWModifier>(nameof(PWModifier));
+            if (panel) DestroyImmediate(panel.gameObject);
+        }
 
         public override void Awake() {
             Log.Called();
             base.Awake();
             try {
-                name = nameof(PWSelector);
+                name = nameof(PWModifier);
                 atlas = TextureUtil.Ingame;
                 relativePosition = default;
 

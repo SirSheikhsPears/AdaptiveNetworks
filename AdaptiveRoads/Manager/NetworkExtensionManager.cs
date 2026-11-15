@@ -105,7 +105,10 @@ namespace AdaptiveRoads.Manager {
 
         public static void Deserialize(SimpleDataSerializer s) {
             try {
-                instance_ = Create();
+                lock (LifeCycle.TMPESyncRoot) {
+                    if (!ReferenceEquals(instance_, null)) instance_.DetachTMPE();
+                    instance_ = Create();
+                }
                 if (s != null)
                     instance_.DeserializeImp(s);
             } catch (Exception ex) {
@@ -155,18 +158,37 @@ namespace AdaptiveRoads.Manager {
         // should be called from simulation thread.
         static Stopwatch timer2 = new Stopwatch();
         static int counter2;
-        void LoadImpl() {
+        [NonSerialized] INotifier tmpeModifiedNotifier_;
+        [NonSerialized] Action<OnModifiedEventArgs> tmpeModifiedHandler_;
+        [NonSerialized] object tmpeLoadRequest_;
+        [NonSerialized] object tmpeQueuedLifetime_;
+
+        void LoadImpl(object lifetime, INotifier notifier) {
             LogCalled();
-            TMPENotifier.EventModified -= OnTMPEModified;
+            DetachTMPE();
             Stopwatch timer = new Stopwatch();
             timer.Start();
             timer2.Reset();
             counter2 = 0;
             UpdateAllNetworkFlags();
+            if (this == null || !ReferenceEquals(RawInstance, this) ||
+                !LifeCycle.IsCurrentTMPEContext(lifetime, notifier)) return;
             UpdateAllNetworkFlags();
             timer.Stop();
-            TMPENotifier.EventModified -= OnTMPEModified;
-            TMPENotifier.EventModified += OnTMPEModified;
+            if (this == null || !ReferenceEquals(RawInstance, this) ||
+                !LifeCycle.IsCurrentTMPEContext(lifetime, notifier)) return;
+            Action<OnModifiedEventArgs> handler = null;
+            handler = args => {
+                lock (LifeCycle.TMPESyncRoot) {
+                    if (this != null && ReferenceEquals(RawInstance, this) &&
+                        ReferenceEquals(tmpeModifiedHandler_, handler) &&
+                        LifeCycle.IsCurrentTMPEContext(lifetime, notifier)) OnTMPEModified(args);
+                }
+            };
+            tmpeModifiedNotifier_ = notifier;
+            tmpeModifiedHandler_ = handler;
+            try { notifier.EventModified += handler; }
+            catch { DetachTMPE(); throw; }
 #if DEBUG
             ThreadingExtensions.Handle2(OutlineData.timer1, OutlineData.counter1, "lane-outline");
             ThreadingExtensions.Handle2(OutlineData.timer2, OutlineData.counter2, "transition-outline");
@@ -227,7 +249,42 @@ namespace AdaptiveRoads.Manager {
         }
 
         public static void OnTMPELoaded() {
-            SimulationManager.instance.AddAction(Instance.LoadImpl);
+            lock (LifeCycle.TMPESyncRoot) {
+                object lifetime;
+                INotifier notifier;
+                var manager = RawInstance;
+                if (manager == null || !LifeCycle.TryGetTMPEContext(out lifetime, out notifier)) return;
+                if (manager.tmpeLoadRequest_ != null && ReferenceEquals(manager.tmpeQueuedLifetime_, lifetime)) return;
+                var request = new object();
+                manager.tmpeLoadRequest_ = request;
+                manager.tmpeQueuedLifetime_ = lifetime;
+                try {
+                    SimulationManager.instance.AddAction(() => {
+                        lock (LifeCycle.TMPESyncRoot) {
+                            if (!ReferenceEquals(manager.tmpeLoadRequest_, request)) return;
+                            manager.tmpeLoadRequest_ = manager.tmpeQueuedLifetime_ = null;
+                            if (manager == null || !ReferenceEquals(RawInstance, manager) ||
+                                !LifeCycle.IsCurrentTMPEContext(lifetime, notifier)) return;
+                            try { manager.LoadImpl(lifetime, notifier); }
+                            catch (Exception ex) { manager.DetachTMPE(); ex.Log(); }
+                        }
+                    });
+                } catch {
+                    manager.tmpeLoadRequest_ = manager.tmpeQueuedLifetime_ = null;
+                    throw;
+                }
+            }
+        }
+
+        internal void DetachTMPE() {
+            lock (LifeCycle.TMPESyncRoot) {
+                tmpeLoadRequest_ = tmpeQueuedLifetime_ = null;
+                var notifier = tmpeModifiedNotifier_;
+                var handler = tmpeModifiedHandler_;
+                tmpeModifiedNotifier_ = null;
+                tmpeModifiedHandler_ = null;
+                if (notifier != null && handler != null) notifier.EventModified -= handler;
+            }
         }
 
         // should be called from main thread.
@@ -247,9 +304,20 @@ namespace AdaptiveRoads.Manager {
         }
 
         public void OnUnload() {
-            TMPENotifier.EventModified -= OnTMPEModified;
-            Destroy(gameObject);
-            instance_ = null;
+            lock (LifeCycle.TMPESyncRoot) {
+                try { DetachTMPE(); }
+                finally {
+                    if (ReferenceEquals(instance_, this)) instance_ = null;
+                    if (this != null) Destroy(gameObject);
+                }
+            }
+        }
+
+        void OnDestroy() {
+            lock (LifeCycle.TMPESyncRoot) {
+                DetachTMPE();
+                if (ReferenceEquals(instance_, this)) instance_ = null;
+            }
         }
 
         //public void OnAfterDeserialize() { }

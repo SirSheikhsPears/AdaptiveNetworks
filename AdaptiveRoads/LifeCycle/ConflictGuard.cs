@@ -80,7 +80,7 @@ namespace AdaptiveRoads.LifeCycle {
             if (!normalStarted_ || cleanupStarted_) return;
             cleanupStarted_ = true;
             try { DisableNormal(); }
-            catch (Exception ex) { Write("normal disable threw: " + ex.GetType().Name); }
+            catch (Exception ex) { Write("normal disable threw in LifeCycle.Disable(): " + ex.ToString()); }
             finally { normalStarted_ = false; }
             // The independent notice survives the own-plugin setter. No session reset.
         }
