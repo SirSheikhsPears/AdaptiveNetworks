@@ -73,7 +73,7 @@ namespace AdaptiveRoads.LifeCycle {
             else ThreadHelper.dispatcher.Dispatch(create);
         }
 
-        // Direct-load argument matching is shared with K40 in ConflictGuard.
+        // Direct-load argument matching is shared with ConflictGuard.
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
             if (scene.name == "MainMenu" || scene.name == "IntroScreen")
@@ -100,7 +100,7 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         private void LevelLoaded(SimulationManager.UpdateMode mode) {
-            // In the preserved loader this event precedes the asset selector's ShowModal.
+            // This event precedes the asset selector's ShowModal.
             // Do not push here: the loader would subsequently push the selector above us.
             try {
                 DetachLevelLoaded();
@@ -123,7 +123,6 @@ namespace AdaptiveRoads.LifeCycle {
                 ConflictGuard.Write("editor end-of-frame checkpoint; frame=" + Time.frameCount);
                 Update(); // Reuse all readiness, foreign-modal and exception checks unchanged.
             }
-            // First-input ordering in CS1 remains PENDING RUNTIME VERIFICATION.
         }
 
         private void Update() {
@@ -184,7 +183,6 @@ namespace AdaptiveRoads.LifeCycle {
 
         private static bool IsAssetSelection(UIComponent component) {
             // The real loader pushes these BEFORE m_loadingComplete. Never pop/hide them.
-            // Ordering before the player's first selection still requires R05; no runtime PASS.
             return component != null && (component.GetComponent<LoadAssetPanel>() != null
                 || component.GetComponent<AssetImporterWizard>() != null);
         }

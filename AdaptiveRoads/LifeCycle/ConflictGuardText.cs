@@ -9,7 +9,7 @@ namespace AdaptiveRoads.LifeCycle {
             internal readonly List<string> Paragraphs = new List<string>();
         }
 
-        // Braces mark only approved emphasis spans; they are removed before rendering.
+        // Braces mark emphasis spans; they are removed before rendering.
         internal static Message Create(bool conflict, ConflictGuard.DisableResult disable,
             ConflictGuardDependency.Status tm, bool editor, bool interrupted) {
             string shortName = UserMod.GuardShortName;

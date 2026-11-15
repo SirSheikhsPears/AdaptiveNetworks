@@ -65,8 +65,9 @@ namespace AdaptiveRoads.LifeCycle {
                 || label == "Traffic Manager: President Edition"
                 || label.StartsWith("Traffic Manager: President Edition ", StringComparison.Ordinal);
         }
-        // ConnectionProblem is retained for the approved text contract. No reliable one-shot,
-        // side-effect-free API failure detector has been proved. Inspect NEVER returns it.
-        // Active describes the catalog only: API health is UNKNOWN / NO ALERT, not PASS.
+        // ConnectionProblem is retained for compatibility with existing message handling.
+        // No reliable one-shot, side-effect-free API failure detector has been established.
+        // Inspect never returns ConnectionProblem.
+        // Active describes the plugin catalog only; API health is not verified.
     }
 }
