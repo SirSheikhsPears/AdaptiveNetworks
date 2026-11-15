@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.0.5.47 — 2026-11-15 (Debug)
+
+- [`b61c8a3`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/b61c8a3) — `RefreshJunctionDataPatch`: initialize `m_dataColor1` using `NetAI.GetObjectColor()`.
+- [`b7a5d4a`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/b7a5d4a) — `LifeCycle` / `NetworkExtensionManager`: event subscriptions and cleanup; `PWModifier.Release()` correction.
+- [`4fcc115`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/4fcc115) — Clean up Conflict Guard comments and `BUILD_INFO.md` generation.
+- [`a696e38`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a696e38) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.47-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.47-INSTALL.sha256).
+
+## 4.0.5.43 — 2026-11-03 (Debug)
+
+- [`520a5cd`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/520a5cd) — Correct `GetLDArg()` handling in junction patches.
+- [`25996ef`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/25996ef) — Restore integration with Hide TM:PE Crosswalks Renewed and Hide TM:PE Unconnected Tracks Renewed.
+- [`737d0ac`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/737d0ac) — Update Build/Deploy configuration.
+- [Install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.sha256).
+
 ## 4.0.5.40 — 2026-11-02 (Debug)
 
 - [`8249739`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/8249739b5a1265e4ec8c05d6c774ababe85ac2ca) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.sha256): 12 files + `BUILD_INFO.md` in a versioned folder; Debug, `clean` source: ANR [`a5fe0f9`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a5fe0f9c4ee4794a876b9f4f42ac85a32eed7538), KianCommons [`bc9071b`](https://github.com/SirSheikhsPears/KianCommons/commit/bc9071bcb5c097fb7c3ddad653da70dd882820e2).
