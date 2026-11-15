@@ -206,6 +206,7 @@ namespace AdaptiveRoads.Patches.AsymPavements {
             data.m_dataInt0 = segmentIndex;
             data.m_dataColor0 = info.m_color;
             data.m_dataColor0.a = 0f;
+            data.m_dataColor1 = info.m_netAI.GetObjectColor(nodeID, ref node);
             data.m_dataFloat0 = Singleton<WeatherManager>.instance.GetWindSpeed(data.m_position);
             if (info.m_requireSurfaceMaps) {
                 Singleton<TerrainManager>.instance.GetSurfaceMapping(data.m_position, out data.m_dataTexture0, out data.m_dataTexture1, out data.m_dataVector3);
