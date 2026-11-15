@@ -1,10 +1,17 @@
 # Changelog
 
+## 4.0.5.47 — 2026-11-15 (Debug)
+
+- [`b61c8a3`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/b61c8a3) — `RefreshJunctionDataPatch`: initialize `m_dataColor1` using `NetAI.GetObjectColor()`.
+- [`b7a5d4a`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/b7a5d4a) — `LifeCycle` / `NetworkExtensionManager`: event subscriptions and cleanup; `PWModifier.Release()` correction.
+- [`4fcc115`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/4fcc115) — Clean up Conflict Guard comments and `BUILD_INFO.md` generation.
+- [`a696e38`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a696e38) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.47-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.47-INSTALL.sha256).
+
 ## 4.0.5.43 — 2026-11-03 (Debug)
 
 - [`42caf37`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/42caf37dff68114bc323a0e7dca0b6cf78fe21e0) — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.zip) / [`.sha256`](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.sha256): Debug, `clean` sources; ANR [`cdc4840`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/cdc48409a20e0a86b556c4670a496b3b0b3fcd0f), KianCommons [`9edb716`](https://github.com/SirSheikhsPears/KianCommons/commit/9edb71664bfc333cd6aecca6f503d187e58b58ea).
-- [`c9047a4`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/c9047a4bb8ea3fcd6e4ae1f0f48b86989aba677a) — `RefreshJunctionDataPatch.cs` -  replaced `Ldarga` with `GetLDArg(method, "data")`.
--  [`d8754b0`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/d8754b038442e68a50b3a123ddf0f17d059f7437) / KianCommons [`9edb716`](https://github.com/SirSheikhsPears/KianCommons/commit/9edb71664bfc333cd6aecca6f503d187e58b58ea) — `GetPlugin()`: `HideCrosswalksRenewed` and `HideUnconnectedTracksRenewed` with `AssemblyEquals` - updated assembly detection; removed obsolete `HideCrosswalksPatch.cs`.
+- [`c9047a4`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/c9047a4bb8ea3fcd6e4ae1f0f48b86989aba677a) — `RefreshJunctionDataPatch.cs`: replaced `Ldarga` with `GetLDArg(method, "data")`.
+- [`d8754b0`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/d8754b038442e68a50b3a123ddf0f17d059f7437) / KianCommons [`9edb716`](https://github.com/SirSheikhsPears/KianCommons/commit/9edb71664bfc333cd6aecca6f503d187e58b58ea) — `GetPlugin()`: updated assembly detection for `HideCrosswalksRenewed` and `HideUnconnectedTracksRenewed`; removed obsolete `HideCrosswalksPatch.cs`.
 - [`cdc4840`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/cdc48409a20e0a86b556c4670a496b3b0b3fcd0f) — deploy changes.
 
 ## 4.0.5.40 — 2026-11-02 (Debug)

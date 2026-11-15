@@ -39,12 +39,11 @@ Based on [TheMadisonian's Adaptive Networks](https://github.com/TheMadisonian/Ad
 *After the first ANR Stable Workshop release, `master` will track Stable sources, a separate `Alpha` source branch will be introduced, and `test-builds` will remain the Alpha test-build distribution branch.*
 
 ### Available builds
-
-- **4.0.5.43 (Debug) => also current version on Steam Workshop ANR [Alpha]** — [experimental install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.sha256)), published November 3, 2026. Contains a versioned mod folder for `Addons\Mods`.
+- **4.0.5.47 (Debug) — current Steam Workshop ANR [Alpha] version** — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.47-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.47-INSTALL.sha256)), published November 15, 2026. Contains a versioned mod folder for `Addons\Mods`.
+- **4.0.5.43 (Debug)** — [install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.43-INSTALL.sha256)), published November 3, 2026. Contains a versioned mod folder for `Addons\Mods`.
 - **4.0.5.40 (Debug)** — [experimental install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.40-INSTALL.sha256)), published November 2, 2026. Contains a versioned mod folder for `Addons\Mods`.
 - **4.0.5.9 (Debug)** — [experimental install ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.zip) ([SHA-256](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/ANR_A-4.0.5.9-INSTALL.sha256)), published October 26, 2026. Contains a versioned mod folder for `Addons\Mods`.
 - **4.0.5.0-TEST** — [experimental test ZIP](https://github.com/SirSheikhsPears/AdaptiveNetworks/blob/test-builds/AdaptiveNetworks-4.0.5.0-TEST.zip), published October 8, 2026.
-- **ANR Alpha** — 4.0.5.43 (Debug)
 - **ANR Stable** — will be available after ANR Alpha passed all compatibility tests with current Race Day **(1.21.1)** patch.
 
 ## Compatibility
