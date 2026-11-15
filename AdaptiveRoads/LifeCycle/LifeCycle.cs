@@ -21,6 +21,7 @@ namespace AdaptiveRoads.LifeCycle {
     using AdaptiveRoads.UI.VBSTool;
     using AdaptiveRoads.UI;
     using System.Linq;
+    using TrafficManager.API.Notifier;
 
     public static class LifeCycle {
         public static string HARMONY_ID = "CS.Kian.AdaptiveRoads";
@@ -33,6 +34,74 @@ namespace AdaptiveRoads.LifeCycle {
         public static bool bHotReload = false;
         // Separate from Guard admission and Enable/NSC registration; true only after Load succeeds.
         internal static bool LevelReady { get; private set; }
+
+        // Only the TMPE subscription and its simulation callbacks share this lock.
+        internal static readonly object TMPESyncRoot = new object();
+        static INotifier tmpeNotifier_;
+        static Action tmpeLevelLoadedHandler_;
+        static object tmpeLifetime_;
+
+        static void SetTMPENotifier(INotifier notifier) {
+            lock (TMPESyncRoot) {
+                if (tmpeLifetime_ != null && ReferenceEquals(tmpeNotifier_, notifier)) return;
+                DetachTMPENotifier();
+                var lifetime = new object();
+                tmpeLifetime_ = lifetime;
+                tmpeNotifier_ = notifier;
+                if (notifier == null) return;
+                Action handler = () => {
+                    lock (TMPESyncRoot) {
+                        if (ReferenceEquals(tmpeLifetime_, lifetime) && ReferenceEquals(tmpeNotifier_, notifier))
+                            OnTMPELoaded();
+                    }
+                };
+                tmpeLevelLoadedHandler_ = handler;
+                try {
+                    notifier.EventLevelLoaded += handler;
+                } catch {
+                    DetachTMPENotifier();
+                    throw;
+                }
+            }
+        }
+
+        static void DetachTMPENotifier() {
+            // Caller holds TMPESyncRoot. Invalidate before touching either publisher.
+            var notifier = tmpeNotifier_;
+            var handler = tmpeLevelLoadedHandler_;
+            tmpeLifetime_ = null;
+            tmpeNotifier_ = null;
+            tmpeLevelLoadedHandler_ = null;
+            tmpeLoaded_ = false;
+            try {
+                if (notifier != null && handler != null) notifier.EventLevelLoaded -= handler;
+            } finally {
+                var manager = NetworkExtensionManager.RawInstance;
+                // A destroyed Unity wrapper can still own a managed delegate.
+                if (!ReferenceEquals(manager, null)) manager.DetachTMPE();
+            }
+        }
+
+        static void EndTMPELifetime() {
+            lock (TMPESyncRoot) {
+                loaded_ = false;
+                LevelReady = false;
+                try { DetachTMPENotifier(); }
+                catch (Exception ex) { Log.Exception(ex); }
+            }
+        }
+
+        // Callers hold TMPESyncRoot; the token identifies this publisher binding.
+        internal static bool TryGetTMPEContext(out object lifetime, out INotifier notifier) {
+            lifetime = tmpeLifetime_;
+            notifier = tmpeNotifier_;
+            return IsCurrentTMPEContext(lifetime, notifier);
+        }
+
+        internal static bool IsCurrentTMPEContext(object lifetime, INotifier notifier) {
+            return ConflictGuard.CanRun && loaded_ && LevelReady && lifetime != null && notifier != null &&
+                ReferenceEquals(tmpeLifetime_, lifetime) && ReferenceEquals(tmpeNotifier_, notifier);
+        }
 
         public static void Enable() {
             if (!ConflictGuard.CanRun) return;
@@ -65,6 +134,7 @@ namespace AdaptiveRoads.LifeCycle {
                 //Test();
                 ConflictGuard.MarkBootstrapCompleted();
             } catch (Exception ex) {
+                EndTMPELifetime();
                 Log.Exception(ex);
             }
         }
@@ -98,32 +168,36 @@ namespace AdaptiveRoads.LifeCycle {
             if (loaded_) {
                 // check for loaded_ to avoid detecting AN hotreload as 3rdparty hotreload.
                 Log.Called();
-                if (PluginUtil.GetTrafficManager().IsActive()) {
-                    var notifier = TMPENotifier;
-                    if (notifier != null) {
-                        notifier.EventLevelLoaded -= OnTMPELoaded;
-                        notifier.EventLevelLoaded += OnTMPELoaded;
-                        OnTMPELoaded();
-                    }
+                try {
+                    SetTMPENotifier(PluginUtil.GetTrafficManager().IsActive() ? TMPENotifier : null);
+                    OnTMPELoaded();
+                } catch (Exception ex) {
+                    EndTMPELifetime();
+                    Log.Exception(ex);
                 }
             }
         }
 
         public static void HotReload() {
             if (!ConflictGuard.CanRun) return;
-            LogCalled();
-            bHotReload = true;
-            Preload();
-            AssetDataExtension.HotReload();
-            //SimulationDataReady();
-            NetworkExtensionManager.Instance.HotReload();
-            Load();
-            RoadEditorUtils.RefreshRoadEditor();
+            try {
+                LogCalled();
+                bHotReload = true;
+                Preload();
+                AssetDataExtension.HotReload();
+                //SimulationDataReady();
+                NetworkExtensionManager.Instance.HotReload();
+                Load();
+                RoadEditorUtils.RefreshRoadEditor();
+            } catch {
+                EndTMPELifetime();
+                throw;
+            }
         }
 
         public static void Disable() {
             if (!ConflictGuard.CanCleanup) return;
-            LevelReady = false;
+            EndTMPELifetime();
             Log.Buffered = false;
             ANImplementation.Uninstall();
 
@@ -147,9 +221,9 @@ namespace AdaptiveRoads.LifeCycle {
                     HarmonyUtil.InstallHarmony<PreloadPatchAttribute>(HARMONY_ID_MANUAL);
                     preloadPatchesApplied_ = true;
                 }
-                TMPENotifier.EventLevelLoaded -= OnTMPELoaded;
-                TMPENotifier.EventLevelLoaded += OnTMPELoaded;
+                SetTMPENotifier(TMPENotifier);
             } catch (Exception ex) {
+                EndTMPELifetime();
                 Log.Exception(ex);
             }
         }
@@ -158,10 +232,13 @@ namespace AdaptiveRoads.LifeCycle {
         static bool loaded_ = false;
         public static void OnTMPELoaded() {
             if (!ConflictGuard.CanRun) return;
-            tmpeLoaded_ = true;
-            if (loaded_) {
-                // if TMPE was loaded last, then update everything here.
-                NetworkExtensionManager.OnTMPELoaded();
+            lock (TMPESyncRoot) {
+                if (tmpeLifetime_ == null || tmpeNotifier_ == null) return;
+                tmpeLoaded_ = true;
+                if (loaded_ && LevelReady) {
+                    // If TMPE was loaded last, update after ANR initialization completed.
+                    NetworkExtensionManager.OnTMPELoaded();
+                }
             }
         }
 
@@ -169,6 +246,7 @@ namespace AdaptiveRoads.LifeCycle {
             if (!ConflictGuard.CanRun) return;
             LevelReady = false;
             try {
+                SetTMPENotifier(TMPENotifier);
                 Log.Info("LifeCycle.Load() called");
                 Log.Debug("testing stack trace:\n" + Environment.StackTrace, false);
                 Log.Info($"Scene={Scene} LoadMode={Mode}");
@@ -201,51 +279,58 @@ namespace AdaptiveRoads.LifeCycle {
                 }
 #endif
 
-                if (tmpeLoaded_) {
-                    // wait to load TMPE
-                    NetworkExtensionManager.OnTMPELoaded();
-                }
-
                 Log.Flush();
                 Log.Succeeded();
-                LevelReady = true;
+                lock (TMPESyncRoot) {
+                    LevelReady = true;
+                    if (tmpeLoaded_) NetworkExtensionManager.OnTMPELoaded();
+                }
             } catch (Exception ex) {
+                EndTMPELifetime();
                 Log.Exception(ex);
             }
         }
 
         public static void Unload() {
             if (!ConflictGuard.CanCleanup) return;
-            LevelReady = false;
+            EndTMPELifetime();
             try {
                 LogCalled();
-                loaded_ = tmpeLoaded_ = false;
 #if DEBUG
-                UI.Debug.PWSelector.Release();
-                UI.Debug.PWModifier.Release();
+                try { UI.Debug.PWSelector.Release(); }
+                catch (Exception ex) { ConflictGuard.Write("Unload.PWSelector.Release failed: " + ex.ToString()); }
+                try { UI.Debug.PWModifier.Release(); }
+                catch (Exception ex) { ConflictGuard.Write("Unload.PWModifier.Release failed: " + ex.ToString()); }
 #endif
                 VBSTool.Release();
                 ARTool.Release();
                 HintBox.Release();
                 HarmonyUtil.UninstallHarmony(HARMONY_ID);
                 ImportScalePatch.Release();
-                NetworkExtensionManager.RawInstance?.OnUnload();
             }catch(Exception ex) {
                 Log.Exception(ex);
+            } finally {
+                var manager = NetworkExtensionManager.RawInstance;
+                if (!ReferenceEquals(manager, null)) {
+                    try { manager.OnUnload(); }
+                    catch (Exception ex) { Log.Exception(ex); }
+                }
             }
         }
 
         public static void Exit() {
             if (!ConflictGuard.CanCleanup) return;
-            LevelReady = false;
+            EndTMPELifetime();
             Log.Buffered = false;
             Log.Info("LifeCycle.Exit() called");
             PluginManager.instance.eventPluginsStateChanged -= HotReload3rdparty;
             PluginManager.instance.eventPluginsChanged -= HotReload3rdparty;
-            TMPENotifier.EventLevelLoaded -= NetworkExtensionManager.OnTMPELoaded;
             HarmonyUtil.UninstallHarmony(HARMONY_ID_MANUAL);
             preloadPatchesApplied_ = false;
-            if(TrackManager.exists) GameObject.Destroy(TrackManager.instance.gameObject);
+            if (TrackManager.exists) {
+                var manager = TrackManager.instance;
+                if (manager) GameObject.Destroy(manager.gameObject);
+            }
         }
 
     }
