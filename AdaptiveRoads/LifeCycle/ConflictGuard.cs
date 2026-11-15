@@ -102,7 +102,7 @@ namespace AdaptiveRoads.LifeCycle {
         }
 
         // A session-wide, MainMenu-scoped record. "Confirmed" describes the observed
-        // native/Skyve Invoke states at this checkpoint, NOT a guarantee against
+        // native/Skyve Invoke states during startup, not a guarantee against
         // unknown loaders or an already-started level transition.
         internal enum StartupAutoLoadStopState { None, Pending, Partial, Confirmed }
         private static StartupAutoLoadStopState autoStopState_;

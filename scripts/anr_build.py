@@ -253,7 +253,6 @@ def finish(args, repo, obj):
        'dll_sha256':compiled['dll_sha256'],'payload':payload}
     (content/'BUILD_INFO.md').write_text(
         '# '+m['name']+' '+value+'\n\n'
-        'Paczkę przygotowano po kompilacji. Wynik testów gry właściciel zatwierdza osobno.\n\n'
         '```json\n'+json.dumps(m,indent=2,ensure_ascii=False)+'\n```\n',
         encoding='utf-8',newline='\n')
     gh=pending/'GITHUB'; gh.mkdir(); name=package_name(channel,value)
