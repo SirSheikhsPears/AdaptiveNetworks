@@ -15,6 +15,7 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
         public Vector4 ObjectIndex; // color location
         public Vector2 ObjectColorIndex;
         public Color Color;
+        public Color ObjectColor; // AI RGB; ObjectColorIndex remains the group texture coordinate.
         public Quaternion Rotation => Quaternion.identity;
         public Vector3 Position;
 
@@ -120,6 +121,7 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
                 netMan.m_materialBlock.SetVector(netMan.ID_MeshScale, this.MeshScale);
                 netMan.m_materialBlock.SetVector(netMan.ID_ObjectIndex, this.ObjectIndex);
                 netMan.m_materialBlock.SetColor(netMan.ID_Color, this.Color);
+                netMan.m_materialBlock.SetColor(netMan.ID_ObjectColor, this.ObjectColor);
                 if (trackInfo.m_requireSurfaceMaps && SurfaceTextureA != null) {
                     netMan.m_materialBlock.SetTexture(netMan.ID_SurfaceTexA, SurfaceTextureA);
                     netMan.m_materialBlock.SetTexture(netMan.ID_SurfaceTexB, SurfaceTextureB);
@@ -134,13 +136,6 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
             } else {
                 NetInfo.LodValue combinedLod = trackInfo.m_combinedLod;
                 if (combinedLod != null) {
-                    combinedLod.m_leftMatrices[combinedLod.m_lodCount] = this.LeftMatrix;
-                    combinedLod.m_rightMatrices[combinedLod.m_lodCount] = this.RightMatrix;
-                    combinedLod.m_meshScales[combinedLod.m_lodCount] = this.MeshScale;
-                    combinedLod.m_objectIndices[combinedLod.m_lodCount] = this.ObjectIndex;
-                    combinedLod.m_meshLocations[combinedLod.m_lodCount] = this.Position;
-                    combinedLod.m_lodMin = Vector3.Min(combinedLod.m_lodMin, this.Position);
-                    combinedLod.m_lodMax = Vector3.Max(combinedLod.m_lodMax, this.Position);
                     if (trackInfo.m_requireSurfaceMaps && SurfaceTextureA != combinedLod.m_surfaceTexA) {
                         if (combinedLod.m_lodCount != 0) {
                             NetSegment.RenderLod(cameraInfo, combinedLod);
@@ -156,6 +151,15 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
                         combinedLod.m_heightMapping = this.HeightMapping;
                         combinedLod.m_surfaceMapping = this.SurfaceMapping;
                     }
+                    // Resolve the old batch before writing any part of the new slot.
+                    combinedLod.m_leftMatrices[combinedLod.m_lodCount] = this.LeftMatrix;
+                    combinedLod.m_rightMatrices[combinedLod.m_lodCount] = this.RightMatrix;
+                    combinedLod.m_meshScales[combinedLod.m_lodCount] = this.MeshScale;
+                    combinedLod.m_objectIndices[combinedLod.m_lodCount] = this.ObjectIndex;
+                    combinedLod.m_meshLocations[combinedLod.m_lodCount] = this.Position;
+                    combinedLod.m_colors[combinedLod.m_lodCount] = this.ObjectColor.linear;
+                    combinedLod.m_lodMin = Vector3.Min(combinedLod.m_lodMin, this.Position);
+                    combinedLod.m_lodMax = Vector3.Max(combinedLod.m_lodMax, this.Position);
                     if (++combinedLod.m_lodCount == combinedLod.m_leftMatrices.Length) {
                         NetSegment.RenderLod(cameraInfo, combinedLod);
                     }

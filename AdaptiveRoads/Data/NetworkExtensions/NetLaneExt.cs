@@ -256,6 +256,7 @@ namespace AdaptiveRoads.Manager{
                 }
                 ret.ObjectIndex = new Vector4(colorLocationStart.x, colorLocationStart.y, colorLocationEnd.x, colorLocationEnd.y); // object index
                 ret.ObjectColorIndex = netInfo.m_netAI.GetObjectColorIndex(LaneData.SegmentID, ref segment);
+                ret.ObjectColor = netInfo.m_netAI.GetObjectColor(LaneData.SegmentID, ref segment);
                 float vScale = netInfo.m_netAI.GetVScale();
                 ret.TurnAround = LaneData.LaneInfo.IsGoingBackward(); // TODO is this logic sufficient?
                 ret.TurnAround ^= LaneData.Segment.IsInvert();
