@@ -9,7 +9,8 @@ namespace AdaptiveRoads.LifeCycle {
         public override void OnAfterSimulationTick() {
             if (!ConflictGuard.CanRun) return;
             base.OnBeforeSimulationTick();
-            NetworkExtensionManager.Instance.SimulationStep();
+            var manager = NetworkExtensionManager.RawInstance;
+            if (manager != null) manager.SimulationStep();
         }
 
 #if DEBUG
