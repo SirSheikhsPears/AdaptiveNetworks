@@ -64,8 +64,9 @@ namespace AdaptiveRoads.Patches.Node {
                 NodeOverlay.Patch(codes, original, occuranceDrawMesh: 1, counterGetSegment: 2); // DC
                 NodeOverlay.Patch(codes, original, occuranceDrawMesh: 2, counterGetSegment: 1); // junction
                 NodeOverlay.Patch(codes, original, occuranceDrawMesh: 3, counterGetSegment: 0); // end
-                NodeOverlay.PatchBend(codes, original, occuranceDrawMesh: 4); // end
-                NodeOverlay.Patch(codes, original, occuranceDrawMesh: 5, counterGetSegment: 0); // DC-bend
+                NodeOverlay.Patch(codes, original, occuranceDrawMesh: 4, counterGetSegment: 0); // DC-bend
+                if (!NodeOverlay.MarkOrdinaryCall(codes, original))
+                    Log.Info("Ordinary Bend overlay could not be initialized. Other node overlays remain active.");
                 Log.Info($"{ReflectionHelpers.ThisMethod} patched {original} successfully!");
                 return codes;
             } catch(Exception e) {
@@ -74,4 +75,28 @@ namespace AdaptiveRoads.Patches.Node {
             }
         }
     } // end class
+
+    [HarmonyPatch()]
+    internal static class BendOverlayPatch {
+        public static MethodInfo TargetMethod() {
+            var types = new[] {
+                typeof(RenderManager.CameraInfo), typeof(ushort), typeof(NetInfo),
+                typeof(RenderManager.Instance).MakeByRefType(), typeof(NetManager),
+                typeof(bool), typeof(bool)
+            };
+            var method = typeof(NetNode).GetMethod("RenderSegments",
+                BindingFlags.NonPublic | BindingFlags.Instance, null, types, null);
+            Assertion.Assert(method != null && method.ReturnType == typeof(void),
+                "ANR: Ordinary Bend helper signature mismatch");
+            return method;
+        }
+
+        public static IEnumerable<CodeInstruction> Transpiler(
+            IEnumerable<CodeInstruction> instructions, MethodBase original,
+            System.Reflection.Emit.ILGenerator generator) {
+            var codes = TranspilerUtils.ToCodeList(instructions);
+            NodeOverlay.PatchOrdinaryBend(codes, original, generator);
+            return codes;
+        }
+    }
 } // end name space
