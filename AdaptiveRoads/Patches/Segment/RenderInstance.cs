@@ -43,7 +43,7 @@ namespace AdaptiveRoads.Patches.Segment {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original) {
             try {
                 var codes = TranspilerUtils.ToCodeList(instructions);
-                CheckSegmentFlagsCommons.PatchCheckFlags(codes, original);
+                RenderDirectionPatch.Apply(codes, original);
                 Log.Info($"{ReflectionHelpers.ThisMethod} patched {original} successfully!");
                 return codes;
             } catch(Exception e) {

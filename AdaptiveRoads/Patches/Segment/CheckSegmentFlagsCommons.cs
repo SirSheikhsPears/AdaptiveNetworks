@@ -25,6 +25,30 @@ namespace AdaptiveRoads.Patches.Segment {
         // segmentID is either passed directly (methods that have it as a param: PopulateGroupData,
         // CalculateGroupData) or comes from s_currentSegmentID (RenderSegments, which has none).
         public static bool CheckFlags(NetInfo.Segment segmentInfo, ushort segmentID, ref bool turnAround) {
+            return CheckFlagsCore(segmentInfo, segmentID, ref turnAround, null);
+        }
+
+        // Only RenderSegments has the native Fence side contract. Group callers keep
+        // the original two-direction contract through CheckFlags above.
+        public static bool CheckFlagsForRender(NetInfo.Segment segmentInfo, ushort segmentID,
+            ref bool turnAround, float wOffsetParent) {
+            if (segmentInfo == null || segmentInfo.GetMetaData() == null) return true;
+            bool? forcedDirection = null;
+            if (wOffsetParent < 0f)
+                forcedDirection = (segmentID.ToSegment().m_flags2 & NetSegment.Flags2.FenceLeftInvert) == 0;
+            else if (wOffsetParent > 0f)
+                forcedDirection = (segmentID.ToSegment().m_flags2 & NetSegment.Flags2.FenceRightInvert) != 0;
+            return CheckFlagsCore(segmentInfo, segmentID, ref turnAround, forcedDirection);
+        }
+
+        public static bool AllowNativeAutoInvert(NetAI ai, NetInfo.Segment segmentInfo) {
+            // Preserve the original AI invocation (including its exception semantics).
+            bool native = ai.CanAutoRenderInverted();
+            return native && (segmentInfo == null || segmentInfo.GetMetaData() == null);
+        }
+
+        static bool CheckFlagsCore(NetInfo.Segment segmentInfo, ushort segmentID,
+            ref bool turnAround, bool? forcedDirection) {
             if (segmentInfo == null) return true; // bypass
             var segmentInfoExt = segmentInfo.GetMetaData();
             if (segmentInfoExt == null) return true; // bypass
@@ -51,6 +75,7 @@ namespace AdaptiveRoads.Patches.Segment {
 
             for (int direction = 0; direction < 2; ++direction) {
                 bool reverseMesh = direction != 0;
+                if (forcedDirection.HasValue && forcedDirection.Value != reverseMesh) continue;
 
                 if (!segmentInfo.CheckFlags(netSegment.m_flags, netSegment.m_flags2, reverseMesh))
                     continue;
