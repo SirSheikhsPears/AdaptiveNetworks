@@ -221,6 +221,7 @@ namespace AdaptiveRoads.Data.NetworkExtensions {
             }
             ret.ObjectIndex = new Vector4(colorLocationA.x, colorLocationA.y, colorLocationD.x, colorLocationD.y);
             ret.ObjectColorIndex = Info.m_netAI.GetObjectColorIndex(NodeID, ref Node);
+            ret.ObjectColor = Info.m_netAI.GetObjectColor(NodeID, ref Node);
             ret.CalculateMapping(InfoA);
             return ret;
         }
