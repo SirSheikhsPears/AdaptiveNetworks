@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.0.6.0 — 2026-11-25 (Release)
+
+- [`1ffd3b6`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/1ffd3b69f5ab0de7852275e1c28a2572e9c7f381) — Track rendering: corrected object colors and LOD batching.
+- [`90842f9`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/90842f9474c8afb90999a4f864303f5121aeeb24) — Segment rendering: corrected direction selection, including Fence inversion handling.
+- [`a470d2c`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/a470d2c0feeb98de4196c3f2f520174db64a5cd6) — Ported segment overlays to `NetSegment.RenderSegments()`.
+- [`f326b74`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/f326b74e53bd751b68a12e143295b042f1827c4a) — Ported node overlays to `NetNode.RenderSegments()`, including Ordinary Bend.
+- [`1a56d54`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/1a56d54e37385130ccffa6d8599df41c2d377160) — Prevented `NetworkExtensionManager` recreation during simulation ticks.
+- [`c520e13`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/c520e130bd5b318aded262a3a02ecb9bc98b8838) — Updated assembly version to `4.0.6.0`.
+Source tag: [`alpha-4.0.6.0`](https://github.com/SirSheikhsPears/AdaptiveNetworks/tree/alpha-4.0.6.0).
+
 ## 4.0.5.47 — 2026-11-15 (Debug)
 
 - [`b61c8a3`](https://github.com/SirSheikhsPears/AdaptiveNetworks/commit/b61c8a3) — `RefreshJunctionDataPatch`: initialize `m_dataColor1` using `NetAI.GetObjectColor()`.
